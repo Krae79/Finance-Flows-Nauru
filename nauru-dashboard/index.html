@@ -60,19 +60,32 @@
 
   /* ---------- header ---------- */
   header.hero{
+    position:relative; overflow:hidden; isolation:isolate;
     display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between;
-    gap:20px; padding-bottom:22px; margin-bottom:18px; border-bottom:1px solid var(--border);
+    gap:20px; padding:30px 30px 26px; margin-bottom:18px;
+    border-radius:var(--radius-l);
+    background:linear-gradient(135deg,#052744 0%,#0a4b6e 45%,#0d7a78 100%);
+    box-shadow:var(--shadow-1);
   }
+  header.hero .hero-bg{position:absolute; inset:0; z-index:0; width:100%; height:100%; opacity:.9;}
+  header.hero .hero-content{position:relative; z-index:1; display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:20px; width:100%;}
   .hero-eyebrow{
-    font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--text-muted);
-    font-weight:600; margin:0 0 6px;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:#bfe3ea;
+    font-weight:600; margin:0 0 8px;
   }
-  h1{font-size:28px; margin:0 0 6px; letter-spacing:-.01em; font-weight:700; text-wrap:balance;}
-  .hero-sub{color:var(--text-secondary); margin:0; max-width:640px; font-size:13.5px;}
+  .flag-badge{
+    display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.28); border-radius:999px; padding:3px 10px 3px 3px;
+  }
+  .flag-badge svg{width:22px; height:14.6px; border-radius:2px; display:block;}
+  .flag-badge span{font-size:10.5px; font-weight:700; color:#fff; letter-spacing:.04em;}
+  h1{font-size:28px; margin:0 0 6px; letter-spacing:-.01em; font-weight:700; text-wrap:balance; color:#fff;}
+  .hero-sub{color:#d7ecef; margin:0; max-width:640px; font-size:13.5px;}
   .hero-meta{display:flex; gap:22px; flex-wrap:wrap;}
   .hero-meta div{text-align:right;}
-  .hero-meta .n{font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:-.01em;}
-  .hero-meta .l{font-size:10.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.07em; margin-top:2px;}
+  .hero-meta .n{font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:-.01em; color:#fff;}
+  .hero-meta .l{font-size:10.5px; color:#bfe3ea; text-transform:uppercase; letter-spacing:.07em; margin-top:2px;}
 
   /* ---------- data source banner ---------- */
   .data-banner{
@@ -92,7 +105,9 @@
   .tab-btn{
     all:unset; cursor:pointer; padding:10px 16px; font-size:12.5px; font-weight:700; color:var(--text-muted);
     border-bottom:2px solid transparent; white-space:nowrap;
+    display:inline-flex; align-items:center; gap:6px;
   }
+  .tab-btn svg{width:14px; height:14px; flex-shrink:0; opacity:.8;}
   .tab-btn:hover{color:var(--text-primary);}
   .tab-btn.active{color:var(--track-existing); border-bottom-color:var(--track-existing);}
   .tab-page{display:none;}
@@ -345,15 +360,46 @@
 <div class="wrap">
 
   <header class="hero">
-    <div>
-      <p class="hero-eyebrow">Nauru &middot; Climate &amp; Development Finance</p>
-      <h1>Finance Flows Dashboard</h1>
-      <p class="hero-sub">Where the money has gone, where RONAdapt&nbsp;II proposes it goes next, who is funding it, and where the gaps sit &mdash; computed live from the project data below, so sheet edits show up here on refresh.</p>
-    </div>
-    <div class="hero-meta">
-      <div><div class="n" id="m-total">&ndash;</div><div class="l">Tracked capital</div></div>
-      <div><div class="n" id="m-projects">&ndash;</div><div class="l">Projects &amp; activities</div></div>
-      <div><div class="n" id="m-partners">&ndash;</div><div class="l">Funding partners</div></div>
+    <svg class="hero-bg" viewBox="0 0 1200 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+      <defs>
+        <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffe9a8" stop-opacity=".55"/>
+          <stop offset="100%" stop-color="#ffe9a8" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle cx="1040" cy="46" r="120" fill="url(#sunGlow)"/>
+      <circle cx="1040" cy="46" r="26" fill="#ffe9a8" opacity=".35"/>
+      <g stroke="#ffffff" stroke-opacity=".16" stroke-width="1.5" fill="none">
+        <circle cx="140" cy="200" r="34"/>
+        <circle cx="140" cy="200" r="58"/>
+        <circle cx="140" cy="200" r="84"/>
+      </g>
+      <g fill="none" stroke="#ffffff" stroke-opacity=".14" stroke-width="2">
+        <path d="M0,205 Q60,190 120,205 T240,205 T360,205 T480,205 T600,205 T720,205 T840,205 T960,205 T1080,205 T1200,205"/>
+        <path d="M0,222 Q60,210 120,222 T240,222 T360,222 T480,222 T600,222 T720,222 T840,222 T960,222 T1080,222 T1200,222"/>
+      </g>
+    </svg>
+    <div class="hero-content">
+      <div>
+        <p class="hero-eyebrow">
+          <span class="flag-badge" title="Flag of Nauru">
+            <svg viewBox="0 0 40 20" aria-hidden="true" focusable="false">
+              <rect width="40" height="20" fill="#002b7f"/>
+              <rect y="10.6" width="40" height="1.6" fill="#ffc61e"/>
+              <path fill="#ffffff" d="M10.00,12.30 L10.32,14.09 L11.50,12.70 L10.88,14.42 L12.60,13.80 L11.21,14.98 L13.00,15.30 L11.21,15.62 L12.60,16.80 L10.88,16.18 L11.50,17.90 L10.32,16.51 L10.00,18.30 L9.68,16.51 L8.50,17.90 L9.12,16.18 L7.40,16.80 L8.79,15.62 L7.00,15.30 L8.79,14.98 L7.40,13.80 L9.12,14.42 L8.50,12.70 L9.68,14.09 Z"/>
+            </svg>
+            <span>Nauru</span>
+          </span>
+          &middot; Climate &amp; Development Finance
+        </p>
+        <h1>Finance Flows Dashboard</h1>
+        <p class="hero-sub">Where the money has gone, where RONAdapt&nbsp;II proposes it goes next, who is funding it, and where the gaps sit &mdash; computed live from the project data below, so sheet edits show up here on refresh.</p>
+      </div>
+      <div class="hero-meta">
+        <div><div class="n" id="m-total">&ndash;</div><div class="l">Tracked capital</div></div>
+        <div><div class="n" id="m-projects">&ndash;</div><div class="l">Projects &amp; activities</div></div>
+        <div><div class="n" id="m-partners">&ndash;</div><div class="l">Funding partners</div></div>
+      </div>
     </div>
   </header>
 
@@ -364,11 +410,11 @@
   </div>
 
   <nav class="tabbar" id="tabbar">
-    <button class="tab-btn" data-tab="overview">Overview</button>
-    <button class="tab-btn" data-tab="projects">Project Master List</button>
-    <button class="tab-btn" data-tab="sectors">Sectors</button>
-    <button class="tab-btn" data-tab="duplicates">Duplicates</button>
-    <button class="tab-btn" data-tab="hazards">Hazards &amp; Funding Outcomes</button>
+    <button class="tab-btn" data-tab="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Overview</button>
+    <button class="tab-btn" data-tab="projects"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Project Master List</button>
+    <button class="tab-btn" data-tab="sectors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>Sectors</button>
+    <button class="tab-btn" data-tab="duplicates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Duplicates</button>
+    <button class="tab-btn" data-tab="hazards"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Hazards &amp; Funding Outcomes</button>
   </nav>
 
   <!-- ============================= OVERVIEW TAB ============================= -->
