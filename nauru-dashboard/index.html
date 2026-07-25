@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finance Flows Dashboard Nauru</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --surface-1:#fcfcfb; --surface-2:#f3f2ee; --page-plane:#f9f9f7;
+    --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#898781;
+    --gridline:#e1e0d9; --baseline:#c3c2b7; --border:rgba(11,11,11,0.10);
+    --track-existing:#2a78d6; --track-existing-soft:#cde2fb;
+    --track-pipeline:#1baf7a; --track-pipeline-soft:#c9ede1;
+    --status-good:#0ca30c; --status-warning:#c98500; --status-serious:#ec835a; --status-critical:#d03b3b;
+    --seq-100:#cdf0e1; --seq-300:#7ad4ab; --seq-500:#1baf7a; --seq-700:#0a5a3c;
+    --radius-s:6px; --radius-m:10px; --radius-l:16px;
+    --shadow-1: 0 1px 2px rgba(11,11,11,0.06), 0 1px 1px rgba(11,11,11,0.04);
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --surface-1:#1a1a19; --surface-2:#222221; --page-plane:#0d0d0d;
+      --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#898781;
+      --gridline:#2c2c2a; --baseline:#383835; --border:rgba(255,255,255,0.10);
+      --track-existing:#3987e5; --track-existing-soft:#1c3a5c;
+      --track-pipeline:#199e70; --track-pipeline-soft:#123f31;
+      --status-good:#0ca30c; --status-warning:#fab219; --status-serious:#ec835a; --status-critical:#e66767;
+      --seq-100:#123f31; --seq-300:#199e70; --seq-500:#1baf7a; --seq-700:#7fe0bd;
+    }
+  }
+  :root[data-theme="dark"]{
+    --surface-1:#1a1a19; --surface-2:#222221; --page-plane:#0d0d0d;
+    --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#898781;
+    --gridline:#2c2c2a; --baseline:#383835; --border:rgba(255,255,255,0.10);
+    --track-existing:#3987e5; --track-existing-soft:#1c3a5c;
+    --track-pipeline:#199e70; --track-pipeline-soft:#123f31;
+    --status-good:#0ca30c; --status-warning:#fab219; --status-serious:#ec835a; --status-critical:#e66767;
+    --seq-100:#123f31; --seq-300:#199e70; --seq-500:#1baf7a; --seq-700:#7fe0bd;
+  }
+  :root[data-theme="light"]{
+    --surface-1:#fcfcfb; --surface-2:#f3f2ee; --page-plane:#f9f9f7;
+    --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#898781;
+    --gridline:#e1e0d9; --baseline:#c3c2b7; --border:rgba(11,11,11,0.10);
+    --track-existing:#2a78d6; --track-existing-soft:#cde2fb;
+    --track-pipeline:#1baf7a; --track-pipeline-soft:#c9ede1;
+    --status-good:#0ca30c; --status-warning:#c98500; --status-serious:#ec835a; --status-critical:#d03b3b;
+    --seq-100:#cdf0e1; --seq-300:#7ad4ab; --seq-500:#1baf7a; --seq-700:#0a5a3c;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--page-plane); color:var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size:14px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1360px; margin:0 auto; padding:28px 28px 64px;}
+
+  /* ---------- header ---------- */
+  header.hero{
+    position:relative; overflow:hidden; isolation:isolate;
+    display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between;
+    gap:20px; padding:30px 30px 26px; margin-bottom:18px;
+    border-radius:var(--radius-l);
+    background:linear-gradient(135deg,#052744 0%,#0a4b6e 45%,#0d7a78 100%);
+    box-shadow:var(--shadow-1);
+  }
+  header.hero .hero-bg{position:absolute; inset:0; z-index:0; width:100%; height:100%; opacity:.9;}
+  header.hero .hero-content{position:relative; z-index:1; display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:20px; width:100%;}
+  .hero-eyebrow{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:#bfe3ea;
+    font-weight:600; margin:0 0 8px;
+  }
+  .flag-badge{
+    display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.28); border-radius:999px; padding:3px 10px 3px 3px;
+  }
+  .flag-badge svg{width:22px; height:14.6px; border-radius:2px; display:block;}
+  .flag-badge span{font-size:10.5px; font-weight:700; color:#fff; letter-spacing:.04em;}
+  h1{font-size:28px; margin:0 0 6px; letter-spacing:-.01em; font-weight:700; text-wrap:balance; color:#fff;}
+  .hero-sub{color:#d7ecef; margin:0; max-width:640px; font-size:13.5px;}
+  .hero-meta{display:flex; gap:22px; flex-wrap:wrap;}
+  .hero-meta div{text-align:right;}
+  .hero-meta .n{font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:-.01em; color:#fff;}
+  .hero-meta .l{font-size:10.5px; color:#bfe3ea; text-transform:uppercase; letter-spacing:.07em; margin-top:2px;}
+
+  /* ---------- data source banner ---------- */
+  .data-banner{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:11.5px; color:var(--text-muted);
+    margin-bottom:18px; padding:8px 14px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border);
+  }
+  .data-banner .dot2{width:7px; height:7px; border-radius:50%; background:var(--status-good); flex-shrink:0;}
+  .data-banner.is-error .dot2{background:var(--status-critical);}
+  .data-banner.is-loading .dot2{background:var(--status-warning);}
+  .data-banner button{
+    all:unset; cursor:pointer; color:var(--track-existing); font-weight:700; font-size:11.5px; margin-left:auto;
+  }
+  .data-banner button:hover{text-decoration:underline;}
+
+  /* ---------- tab bar ---------- */
+  .tabbar{display:flex; gap:2px; margin-bottom:20px; border-bottom:1px solid var(--border); overflow-x:auto;}
+  .tab-btn{
+    all:unset; cursor:pointer; padding:10px 16px; font-size:12.5px; font-weight:700; color:var(--text-muted);
+    border-bottom:2px solid transparent; white-space:nowrap;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .tab-btn svg{width:14px; height:14px; flex-shrink:0; opacity:.8;}
+  .tab-btn:hover{color:var(--text-primary);}
+  .tab-btn.active{color:var(--track-existing); border-bottom-color:var(--track-existing);}
+  .tab-page{display:none;}
+  .tab-page.active{display:block;}
+
+  /* ---------- KPI row ---------- */
+  .kpis{
+    display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:22px;
+  }
+  .kpi{
+    background:var(--surface-1); border:1px solid var(--border); border-radius:var(--radius-m);
+    padding:14px 16px; box-shadow:var(--shadow-1);
+  }
+  .kpi .v{font-size:23px; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:-.01em;}
+  .kpi .v small{font-size:13px; font-weight:600; color:var(--text-muted);}
+  .kpi .l{font-size:11px; color:var(--text-muted); margin-top:3px; text-transform:uppercase; letter-spacing:.05em;}
+  .kpi .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px;}
+
+  /* ---------- section chrome ---------- */
+  .panel{
+    background:var(--surface-1); border:1px solid var(--border); border-radius:var(--radius-l);
+    padding:20px 22px 18px; box-shadow:var(--shadow-1); margin-bottom:16px;
+  }
+  .panel-head{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:14px; flex-wrap:wrap;}
+  .panel-title{font-size:15px; font-weight:700; margin:0 0 3px; letter-spacing:-.005em;}
+  .panel-desc{font-size:12px; color:var(--text-muted); margin:0; max-width:560px;}
+  .legend{display:flex; gap:14px; flex-wrap:wrap; align-items:center;}
+  .legend-item{display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--text-secondary); font-weight:600;}
+  .legend-swatch{width:10px; height:10px; border-radius:2px;}
+
+  .grid-2{display:grid; grid-template-columns:1.35fr 1fr; gap:16px;}
+  .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+  @media (max-width:980px){ .grid-2{grid-template-columns:1fr;} .grid-3{grid-template-columns:1fr;} .kpis{grid-template-columns:repeat(2,1fr);} }
+
+  /* ---------- charts (SVG) ---------- */
+  .chart-svg{display:block; width:100%; height:auto; overflow:visible;}
+  .bar{transition:opacity .12s ease;}
+  .bar:hover{opacity:.82; cursor:pointer;}
+  .axis-label{font-size:10.5px; fill:var(--text-muted);}
+  .row-label{font-size:12px; fill:var(--text-primary); font-weight:600;}
+  .row-sub{font-size:10px; fill:var(--text-muted);}
+  .val-label{font-size:11px; fill:var(--text-secondary); font-variant-numeric:tabular-nums; font-weight:600;}
+  .gridline{stroke:var(--gridline); stroke-width:1;}
+  .baseline{stroke:var(--baseline); stroke-width:1;}
+
+  /* ---------- tooltip ---------- */
+  #tooltip{
+    position:fixed; pointer-events:none; z-index:999; background:var(--surface-1);
+    border:1px solid var(--border); border-radius:var(--radius-s); padding:8px 11px;
+    font-size:11.5px; box-shadow:0 4px 18px rgba(0,0,0,.18); max-width:280px;
+    opacity:0; transform:translate(-50%,-100%); transition:opacity .08s ease;
+  }
+  #tooltip.show{opacity:1;}
+  #tooltip .tt-title{font-weight:700; margin-bottom:3px;}
+  #tooltip .tt-row{display:flex; justify-content:space-between; gap:14px; color:var(--text-secondary);}
+  #tooltip .tt-row b{color:var(--text-primary); font-variant-numeric:tabular-nums;}
+
+  /* ---------- insight cards ---------- */
+  .insight-card{
+    display:flex; flex-direction:column; gap:6px; padding:14px 16px; border-radius:var(--radius-m);
+    border:1px solid var(--border); background:var(--surface-2);
+  }
+  .insight-card .badge{
+    display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.05em; padding:3px 8px; border-radius:999px; width:fit-content;
+  }
+  .badge.concentration{background:color-mix(in srgb, var(--status-warning) 18%, transparent); color:var(--status-warning);}
+  .badge.gap{background:color-mix(in srgb, var(--status-critical) 16%, transparent); color:var(--status-critical);}
+  .badge.emerging{background:color-mix(in srgb, var(--status-good) 16%, transparent); color:var(--status-good);}
+  .badge.info{background:color-mix(in srgb, var(--track-existing) 16%, transparent); color:var(--track-existing);}
+  .insight-card p{margin:0; font-size:12.5px; color:var(--text-secondary); line-height:1.5;}
+  .insight-card p b{color:var(--text-primary); font-variant-numeric:tabular-nums;}
+  .insight-card .sec-name{font-weight:700; font-size:13px;}
+  .insight-card .sec-meta{font-size:11px; color:var(--text-muted);}
+
+  /* ---------- filters ---------- */
+  .filterbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:16px;}
+  .seg{display:inline-flex; background:var(--surface-2); border:1px solid var(--border); border-radius:999px; padding:3px;}
+  .seg button{
+    all:unset; border:none; background:transparent; padding:6px 14px; border-radius:999px; font-size:12px; font-weight:600;
+    color:var(--text-secondary); cursor:pointer; font-family:inherit;
+  }
+  .seg button.active{background:var(--surface-1); color:var(--text-primary); box-shadow:var(--shadow-1);}
+  .search-input{
+    border:1px solid var(--border); background:var(--surface-1); color:var(--text-primary);
+    border-radius:999px; padding:7px 14px; font-size:12.5px; font-family:inherit; min-width:240px;
+  }
+  .search-input:focus{outline:2px solid var(--track-existing); outline-offset:1px;}
+  select.pl-filter{
+    border:1px solid var(--border); background:var(--surface-1); color:var(--text-primary);
+    border-radius:999px; padding:6px 26px 6px 12px; font-size:12px; font-family:inherit; cursor:pointer;
+  }
+  select.pl-filter:focus{outline:2px solid var(--track-existing); outline-offset:1px;}
+
+  /* ---------- table ---------- */
+  table.data-table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  .data-table thead th{
+    text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted);
+    font-weight:700; padding:8px 10px; border-bottom:1px solid var(--border); cursor:pointer; white-space:nowrap;
+  }
+  .data-table thead th:hover{color:var(--text-primary);}
+  .data-table tbody tr.prog-row{cursor:pointer;}
+  .data-table tbody tr.prog-row:hover{background:var(--surface-2);}
+  .data-table td{padding:9px 10px; border-bottom:1px solid var(--gridline); vertical-align:middle;}
+  .data-table td.num{text-align:right; font-variant-numeric:tabular-nums; font-weight:600;}
+  .sector-chip{
+    display:inline-block; padding:2px 8px; border-radius:999px; font-size:10.5px; font-weight:600;
+    background:var(--surface-2); color:var(--text-secondary); border:1px solid var(--border);
+  }
+  .cap-bar-track{position:relative; background:var(--gridline); border-radius:3px; height:6px; width:100%; overflow:hidden;}
+  .cap-bar-fill{position:absolute; left:0; top:0; height:100%; background:var(--track-pipeline); border-radius:3px;}
+  .expand-icon{display:inline-block; width:14px; color:var(--text-muted); transition:transform .15s ease;}
+  tr.expanded .expand-icon{transform:rotate(90deg);}
+  .subrow td{padding:0; border-bottom:1px solid var(--gridline);}
+  .subrow-inner{display:none; padding:4px 10px 12px 34px;}
+  tr.expanded + .subrow .subrow-inner{display:block;}
+  .sub-item{
+    display:grid; grid-template-columns: 1fr 90px 1fr 70px; gap:10px; padding:6px 8px; font-size:11.5px;
+    border-bottom:1px dashed var(--gridline); align-items:center;
+  }
+  .sub-item:last-child{border-bottom:none;}
+  .sub-item .si-name{color:var(--text-primary); font-weight:600;}
+  .sub-item .si-phase{color:var(--text-muted); font-size:10.5px;}
+  .sub-item .si-partners{color:var(--text-secondary); font-size:10.5px;}
+  .sub-item .si-cap{text-align:right; font-variant-numeric:tabular-nums; font-weight:600; color:var(--track-pipeline);}
+
+  footer{margin-top:28px; padding-top:18px; border-top:1px solid var(--border);}
+  footer p{font-size:11px; color:var(--text-muted); line-height:1.7; max-width:920px; margin:0 0 8px;}
+  footer strong{color:var(--text-secondary);}
+
+  .empty-state{padding:30px; text-align:center; color:var(--text-muted); font-size:12.5px;}
+
+  /* ---------- global toolbar / filters ---------- */
+  .toolbar{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px;
+  }
+  .toolbar .search-input{min-width:240px; flex:0 1 320px;}
+  .toolbar .search-input{padding-left:32px; background-image:none;}
+  .search-wrap{position:relative; flex:0 1 320px;}
+  .search-wrap .search-input{width:100%; min-width:0;}
+  .search-wrap svg{position:absolute; left:11px; top:50%; transform:translateY(-50%); width:13px; height:13px; stroke:var(--text-muted); pointer-events:none;}
+  .chips{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+  .chips-hint{font-size:11.5px; color:var(--text-muted);}
+  .filter-chip{
+    display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600;
+    padding:4px 6px 4px 10px; border-radius:999px; border:1px solid var(--border);
+    background:var(--track-existing-soft); color:var(--text-primary);
+  }
+  .filter-chip.partner{background:var(--track-pipeline-soft);}
+  .filter-chip button{
+    all:unset; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;
+    width:15px; height:15px; border-radius:50%; font-size:11px; color:var(--text-secondary);
+  }
+  .filter-chip button:hover{background:rgba(0,0,0,.12); color:var(--text-primary);}
+
+  /* ---------- sortable sub-tables under charts ---------- */
+  .subtable-wrap{margin-top:14px; max-height:340px; overflow-y:auto; border-top:1px solid var(--border);}
+  .subtable-wrap table.data-table thead th{position:sticky; top:0; background:var(--surface-1);}
+  .subtable-wrap table.data-table tbody tr{cursor:pointer;}
+  .subtable-wrap table.data-table tbody tr:hover{background:var(--surface-2);}
+  .subtable-wrap table.data-table tbody tr.row-active{background:var(--track-existing-soft);}
+  th[data-key] .sort-arrow{margin-left:3px; opacity:.55; font-size:9px;}
+  th[data-key].sorted .sort-arrow{opacity:1;}
+
+  /* ---------- KPI drill-down ---------- */
+  .kpi.clickable{cursor:pointer; transition:box-shadow .12s ease, border-color .12s ease;}
+  .kpi.clickable:hover{box-shadow:0 2px 10px rgba(0,0,0,.10); border-color:var(--track-existing);}
+  .kpi.clickable.active{border-color:var(--track-existing); box-shadow:0 0 0 2px var(--track-existing-soft);}
+  .kpi .hint{font-size:9.5px; color:var(--text-muted); margin-top:5px; text-transform:none; letter-spacing:0;}
+  #kpi-drilldown{margin:-10px 0 22px;}
+  #kpi-drilldown:empty{display:none; margin:0;}
+  .drill-panel{
+    background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-m);
+    padding:14px 16px; max-height:320px; overflow-y:auto;
+  }
+  .drill-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+  .drill-head h3{font-size:13px; margin:0; font-weight:700;}
+  .drill-close{all:unset; cursor:pointer; font-size:16px; line-height:1; color:var(--text-muted); padding:2px 6px;}
+  .drill-close:hover{color:var(--text-primary);}
+
+  /* ---------- Project Master List: timeline ---------- */
+  .tl-row{display:flex; gap:12px; align-items:flex-start; padding:8px 0; border-bottom:1px dashed var(--gridline);}
+  .tl-row:last-child{border-bottom:none;}
+  .tl-label{flex:0 0 210px; font-size:12px; font-weight:600;}
+  .tl-sub{font-size:10.5px; color:var(--text-muted); font-weight:500; margin-top:2px;}
+  .tl-track{flex:1; display:flex; flex-wrap:wrap; gap:3px; align-items:center; min-height:16px;}
+  .tl-chip{display:inline-block; height:14px; min-width:5px; border-radius:3px; background:var(--track-pipeline); cursor:default;}
+  .tl-chip.existing{background:var(--track-existing);}
+  .tl-section-title{font-size:13px; font-weight:700; margin:18px 0 8px;}
+  .tl-section-title:first-child{margin-top:0;}
+
+  /* ---------- Sectors tab bucket groups ---------- */
+  .bucket-group{margin-bottom:22px;}
+  .bucket-group-head{display:flex; align-items:center; gap:10px; margin-bottom:6px;}
+  .bucket-group-head .badge{position:static;}
+  .bucket-caption{font-size:12px; color:var(--text-muted); margin:0 0 12px; max-width:760px;}
+
+  /* ---------- chatbot widget ---------- */
+  .chat-fab{
+    position:fixed; right:22px; bottom:22px; z-index:500; width:52px; height:52px; border-radius:50%;
+    background:var(--track-existing); color:#fff; border:none; cursor:pointer;
+    box-shadow:0 4px 18px rgba(0,0,0,.25); display:flex; align-items:center; justify-content:center;
+  }
+  .chat-fab svg{width:23px; height:23px;}
+  .chat-fab .dot{position:absolute; top:6px; right:6px; width:9px; height:9px; border-radius:50%; background:var(--status-good); border:2px solid var(--surface-1);}
+  .chat-panel{
+    position:fixed; right:22px; bottom:86px; z-index:500; width:360px; max-width:calc(100vw - 40px);
+    height:min(520px, 70vh); background:var(--surface-1); border:1px solid var(--border); border-radius:var(--radius-l);
+    box-shadow:0 12px 40px rgba(0,0,0,.28); display:none; flex-direction:column; overflow:hidden;
+  }
+  .chat-panel.open{display:flex;}
+  .chat-head{
+    padding:12px 14px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;
+    background:var(--surface-2); flex-shrink:0;
+  }
+  .chat-head .t{font-size:12.5px; font-weight:700;}
+  .chat-head .s{font-size:10.5px; color:var(--text-muted); margin-top:1px;}
+  .chat-close{all:unset; cursor:pointer; font-size:17px; color:var(--text-muted); padding:2px 6px;}
+  .chat-close:hover{color:var(--text-primary);}
+  .chat-body{flex:1; overflow-y:auto; padding:12px 14px; display:flex; flex-direction:column; gap:10px;}
+  .chat-msg{max-width:88%; font-size:12.5px; line-height:1.5; padding:8px 11px; border-radius:12px;}
+  .chat-msg b{font-variant-numeric:tabular-nums;}
+  .chat-msg.bot{align-self:flex-start; background:var(--surface-2); border:1px solid var(--border); border-bottom-left-radius:3px;}
+  .chat-msg.user{align-self:flex-end; background:var(--track-existing); color:#fff; border-bottom-right-radius:3px;}
+  .chat-msg ul{margin:4px 0 0; padding-left:16px;}
+  .chat-suggestions{display:flex; flex-direction:column; gap:6px; margin-top:2px;}
+  .chat-chip{
+    all:unset; cursor:pointer; font-size:11.5px; padding:6px 10px; border-radius:8px;
+    background:var(--surface-1); border:1px solid var(--border); color:var(--text-secondary);
+  }
+  .chat-chip:hover{border-color:var(--track-existing); color:var(--text-primary);}
+  .chat-input-row{
+    display:flex; gap:8px; padding:10px; border-top:1px solid var(--border); flex-shrink:0; background:var(--surface-1);
+  }
+  .chat-input-row input{
+    flex:1; border:1px solid var(--border); background:var(--page-plane); color:var(--text-primary);
+    border-radius:999px; padding:8px 13px; font-size:12.5px; font-family:inherit; min-width:0;
+  }
+  .chat-input-row input:focus{outline:2px solid var(--track-existing); outline-offset:1px;}
+  .chat-input-row button{
+    all:unset; cursor:pointer; width:34px; height:34px; border-radius:50%; flex-shrink:0;
+    background:var(--track-existing); color:#fff; display:flex; align-items:center; justify-content:center;
+  }
+  .chat-input-row button:hover{opacity:.88;}
+  .chat-input-row button svg{width:15px; height:15px;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="hero">
+    <svg class="hero-bg" viewBox="0 0 1200 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+      <defs>
+        <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffe9a8" stop-opacity=".55"/>
+          <stop offset="100%" stop-color="#ffe9a8" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle cx="1040" cy="46" r="120" fill="url(#sunGlow)"/>
+      <circle cx="1040" cy="46" r="26" fill="#ffe9a8" opacity=".35"/>
+      <g stroke="#ffffff" stroke-opacity=".16" stroke-width="1.5" fill="none">
+        <circle cx="140" cy="200" r="34"/>
+        <circle cx="140" cy="200" r="58"/>
+        <circle cx="140" cy="200" r="84"/>
+      </g>
+      <g fill="none" stroke="#ffffff" stroke-opacity=".14" stroke-width="2">
+        <path d="M0,205 Q60,190 120,205 T240,205 T360,205 T480,205 T600,205 T720,205 T840,205 T960,205 T1080,205 T1200,205"/>
+        <path d="M0,222 Q60,210 120,222 T240,222 T360,222 T480,222 T600,222 T720,222 T840,222 T960,222 T1080,222 T1200,222"/>
+      </g>
+    </svg>
+    <div class="hero-content">
+      <div>
+        <p class="hero-eyebrow">
+          <span class="flag-badge" title="Flag of Nauru">
+            <svg viewBox="0 0 40 20" aria-hidden="true" focusable="false">
+              <rect width="40" height="20" fill="#002b7f"/>
+              <rect y="10.6" width="40" height="1.6" fill="#ffc61e"/>
+              <path fill="#ffffff" d="M10.00,12.30 L10.32,14.09 L11.50,12.70 L10.88,14.42 L12.60,13.80 L11.21,14.98 L13.00,15.30 L11.21,15.62 L12.60,16.80 L10.88,16.18 L11.50,17.90 L10.32,16.51 L10.00,18.30 L9.68,16.51 L8.50,17.90 L9.12,16.18 L7.40,16.80 L8.79,15.62 L7.00,15.30 L8.79,14.98 L7.40,13.80 L9.12,14.42 L8.50,12.70 L9.68,14.09 Z"/>
+            </svg>
+            <span>Nauru</span>
+          </span>
+          &middot; Climate &amp; Development Finance
+        </p>
+        <h1>Finance Flows Dashboard</h1>
+        <p class="hero-sub">Where the money has gone, where RONAdapt&nbsp;II proposes it goes next, who is funding it, and where the gaps sit &mdash; computed live from the project data below, so sheet edits show up here on refresh.</p>
+      </div>
+      <div class="hero-meta">
+        <div><div class="n" id="m-total">&ndash;</div><div class="l">Tracked capital</div></div>
+        <div><div class="n" id="m-projects">&ndash;</div><div class="l">Projects &amp; activities</div></div>
+        <div><div class="n" id="m-partners">&ndash;</div><div class="l">Funding partners</div></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="data-banner is-loading" id="data-banner">
+    <span class="dot2"></span>
+    <span id="data-banner-text">Loading project data&hellip;</span>
+    <button id="data-reload-btn" type="button">Reload data</button>
+  </div>
+
+  <nav class="tabbar" id="tabbar">
+    <button class="tab-btn" data-tab="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Overview</button>
+    <button class="tab-btn" data-tab="projects"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Project Master List</button>
+    <button class="tab-btn" data-tab="sectors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>Sectors</button>
+    <button class="tab-btn" data-tab="duplicates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Duplicates</button>
+    <button class="tab-btn" data-tab="hazards"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Hazards &amp; Funding Outcomes</button>
+  </nav>
+
+  <!-- ============================= OVERVIEW TAB ============================= -->
+  <section class="tab-page" id="tab-overview">
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input class="search-input" id="global-search" type="text" placeholder="Search projects, sectors, or partners&hellip;">
+      </div>
+      <div class="chips" id="filter-chips"></div>
+    </div>
+
+    <section class="kpis" id="kpi-row"></section>
+    <div id="kpi-drilldown"></div>
+
+    <section class="panel" id="insight-panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-title">Where this is heading: opportunities &amp; gaps</p>
+          <p class="panel-desc">Computed directly from the sector totals below, not editorial commentary.</p>
+        </div>
+      </div>
+      <div class="grid-3" id="insight-cards"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-title">Investment by sector, existing vs. proposed pipeline</p>
+          <p class="panel-desc">Committed/ongoing capital (left) against RONAdapt&nbsp;II's proposed capital (right). Click a sector (bar or table row) to filter the activities table below; click a table header to sort.</p>
+        </div>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--track-existing)"></span>Existing / committed</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--track-pipeline)"></span>RONAdapt&nbsp;II pipeline (proposed)</span>
+        </div>
+      </div>
+      <div id="sector-chart"></div>
+      <div class="subtable-wrap" id="sector-table"></div>
+    </section>
+
+    <section class="grid-2">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-title">Who is funding it</p>
+            <p class="panel-desc">Capital associated with each named partner across every project/sub-project that lists them (partners sharing a line are each credited the full line, a reach measure, not an exclusive split). Click a partner to filter the activities table; click a table header to sort.</p>
+          </div>
+        </div>
+        <div id="partner-chart"></div>
+        <div class="subtable-wrap" id="partner-table"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-title">Where, geographically</p>
+            <p class="panel-desc">Existing/committed projects by location (RONAdapt&nbsp;II sub-projects are costed at the national level, not by site).</p>
+          </div>
+        </div>
+        <div id="location-chart"></div>
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-title">When, existing spend by year</p>
+            <p class="panel-desc">Committed/ongoing capital, by recorded start year.</p>
+          </div>
+        </div>
+        <div id="year-chart"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-title">When, pipeline by horizon</p>
+            <p class="panel-desc">RONAdapt&nbsp;II's priority activities each phase their costing near / medium / long-term; grouped here by phase order.</p>
+          </div>
+        </div>
+        <div id="phase-chart"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-title">RONAdapt&nbsp;II pipeline by sector &amp; horizon</p>
+          <p class="panel-desc">Which sectors are front-loaded into the near-term vs. deferred to the long-term.</p>
+        </div>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--seq-100)"></span>Near-term</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--seq-300)"></span>Medium-term</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--seq-700)"></span>Long-term</span>
+        </div>
+      </div>
+      <div id="sector-phase-chart"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-title">RONAdapt&nbsp;II activities, ranked by proposed capital</p>
+          <p class="panel-desc">Click a row to expand its costed sub-projects. Filtered by the search box and any sector/partner filter above.</p>
+        </div>
+      </div>
+      <div id="program-table"></div>
+    </section>
+
+    <section class="panel" id="deep-panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-title">Deeper analysis: how solid is this, really?</p>
+          <p class="panel-desc">Cuts that change how the headline numbers above should be read, not just what they add up to.</p>
+        </div>
+      </div>
+      <div class="grid-3" id="deep-cards" style="margin-bottom:18px;"></div>
+
+      <div class="grid-2">
+        <div>
+          <p class="panel-title" style="font-size:13px;">Funder concentration by sector</p>
+          <p class="panel-desc" style="margin-bottom:10px;">The single largest named partner's share of each sector's associated capital (rows with no named partner excluded from the denominator). A high share means that sector leans on one institution's continued appetite.</p>
+          <div id="concentration-table"></div>
+        </div>
+        <div>
+          <p class="panel-title" style="font-size:13px;">Back-loading: Phase 3 vs. Phase 1</p>
+          <p class="panel-desc" style="margin-bottom:10px;">RONAdapt&nbsp;II activities ranked by how much larger their long-term ask is than their near-term ask.</p>
+          <div id="backload-chart"></div>
+        </div>
+      </div>
+
+      <div class="grid-3" id="deep-stats" style="margin-top:16px;"></div>
+    </section>
+
+    <footer>
+      <p><strong>Sources.</strong> "Project Master List" (existing/committed multi-donor investment, 2017&ndash;2026) and "RONADAPT Project List" (RONAdapt&nbsp;II's priority activities broken into their costed, phased sub-projects) tabs of <em>Nauru Project Master List.xlsx</em>, the latter transcribed from <em>RONAdapt&nbsp;II</em> (Government of the Republic of Nauru, 2025), published to a Google Sheet and read live from <code>data/projects.csv</code> or the configured sheet link &mdash; see <code>README.md</code>.</p>
+      <p><strong>Methodology notes.</strong> Every figure on this page, including this footer's own project counts, is computed in the browser from the currently loaded rows &mdash; nothing is pre-baked. "Who is funding it" is a mention-based reach measure: a line naming three partners credits its full capital to each of the three, so partner totals overlap and do not sum to the grand total. Rows flagged with a Duplicate Status of "Confirmed overlap" are excluded from the adjusted combined total shown in the deep-analysis panel above (see the Duplicates tab); rows flagged "Possible overlap" are shown everywhere but not excluded from any total.</p>
+    </footer>
+
+  </section>
+
+  <!-- ============================= PROJECT MASTER LIST TAB ============================= -->
+  <section class="tab-page" id="tab-projects">
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-title">Project Master List</p>
+          <p class="panel-desc">Every tracked row, existing and pipeline. Search, filter, and sort the table, or switch to the timeline view to see what's happening when.</p>
+        </div>
+        <div class="seg" id="pl-view-toggle">
+          <button type="button" data-view="table" class="active">Table</button>
+          <button type="button" data-view="timeline">Timeline</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input class="search-input" id="pl-search" type="text" placeholder="Search name, description, or program&hellip;">
+        </div>
+        <select class="pl-filter" id="pl-track"></select>
+        <select class="pl-filter" id="pl-sector"></select>
+        <select class="pl-filter" id="pl-phase"></select>
+        <select class="pl-filter" id="pl-outcome"></select>
+        <select class="pl-filter" id="pl-status"></select>
+        <span class="chips-hint" id="pl-count"></span>
+      </div>
+      <div id="pl-table-wrap"><div id="pl-table"></div></div>
+      <div id="pl-timeline-wrap" style="display:none;"><div id="pl-timeline"></div></div>
+    </section>
+  </section>
+
+  <!-- ============================= SECTORS TAB ============================= -->
+  <section class="tab-page" id="tab-sectors">
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-title">Sector categorisation</p>
+          <p class="panel-desc">Every sector sorted into one of four buckets, using four repeatable rules applied to whatever's currently in the data &mdash; not a one-off editorial call. See each bucket's caption for the exact rule.</p>
+        </div>
+      </div>
+      <div id="sectors-buckets"></div>
+    </section>
+  </section>
+
+  <!-- ============================= DUPLICATES TAB ============================= -->
+  <section class="tab-page" id="tab-duplicates">
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-title">Duplicate &amp; overlap flags</p>
+          <p class="panel-desc">Rows the source data flags as possibly counted twice across the existing and pipeline tracks &mdash; e.g. a flagship programme costed as a rough placeholder in one track and again, in detail, in the other.</p>
+        </div>
+      </div>
+      <div class="grid-3" id="dup-summary" style="margin-bottom:18px;"></div>
+      <div id="dup-groups"></div>
+    </section>
+  </section>
+
+  <!-- ============================= HAZARDS TAB ============================= -->
+  <section class="tab-page" id="tab-hazards">
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-title">Hazard groups &times; funding outcome</p>
+          <p class="panel-desc">Capital and project count per recorded hazard group, broken down by whether funding has been secured, is being sought, was unsuccessful, or is unspecified.</p>
+        </div>
+        <div class="legend" id="hazard-legend"></div>
+      </div>
+      <div id="hazard-chart"></div>
+      <div class="subtable-wrap" id="hazard-table"></div>
+    </section>
+  </section>
+
+</div>
+
+<div id="tooltip"></div>
+
+<button class="chat-fab" id="chat-fab" aria-label="Open dashboard assistant" aria-expanded="false">
+  <span class="dot"></span>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+</button>
+
+<div class="chat-panel" id="chat-panel" role="dialog" aria-label="Dashboard data assistant">
+  <div class="chat-head">
+    <div>
+      <div class="t">Dashboard assistant</div>
+      <div class="s">Answers from the data on this page only</div>
+    </div>
+    <button class="chat-close" id="chat-close" aria-label="Close">&times;</button>
+  </div>
+  <div class="chat-body" id="chat-body"></div>
+  <form class="chat-input-row" id="chat-form">
+    <input type="text" id="chat-input" placeholder="Ask about sectors, partners, totals&hellip;" autocomplete="off">
+    <button type="submit" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></button>
+  </form>
+</div>
+
+<script src="config.js"></script>
+<script src="data/fallback-data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
