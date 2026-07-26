@@ -656,6 +656,118 @@
     container.appendChild(svg);
   }
 
+  function ribbonPath(x0, y0top, y0bot, x1, y1top, y1bot){
+    const mx = (x0 + x1) / 2;
+    return `M${x0},${y0top} C${mx},${y0top} ${mx},${y1top} ${x1},${y1top} L${x1},${y1bot} C${mx},${y1bot} ${mx},${y0bot} ${x0},${y0bot} Z`;
+  }
+
+  function renderSankey(containerId, bySector, TE, TP){
+    const container = document.getElementById(containerId);
+    const rows = bySector.filter(s => s.totalCapital > 0).slice().sort((a, b) => b.totalCapital - a.totalCapital);
+    if (!rows.length){ container.innerHTML = '<div class="empty-state">No data</div>'; return; }
+
+    const width = 1040, nodeW = 14, gap = 5, topPad = 8, leftLabelW = 220, rightLabelW = 200;
+    const minNodeH = 30; // floor so small sectors still have room for a two-line label
+    const rowBudget = 28;
+    const totalCap = rows.reduce((a, s) => a + s.totalCapital, 0);
+    const k = (rows.length * rowBudget) / totalCap; // px per $M, true proportional scale (used for ribbon thickness)
+    const scaleY = v => v * k; // unfloored — used for ribbon thickness and right-side node totals
+
+    // left node box heights get a readable floor; ribbons inside stay true-to-scale, vertically centred in the box
+    const boxes = rows.map(s => Math.max(scaleY(s.totalCapital), minNodeH));
+    const height = boxes.reduce((a, b) => a + b, 0) + gap * (rows.length - 1) + topPad * 2;
+
+    const nodeLeftX = leftLabelW;
+    const nodeRightX = width - rightLabelW - nodeW;
+
+    const existingTotal = rows.reduce((a, s) => a + s[TE].capital, 0);
+    const pipelineTotal = rows.reduce((a, s) => a + s[TP].capital, 0);
+    const exNodeY0 = topPad, exNodeY1 = topPad + scaleY(existingTotal);
+    const piNodeY0 = exNodeY1 + gap, piNodeY1 = piNodeY0 + scaleY(pipelineTotal);
+
+    const svg = svgEl('svg', {viewBox: `0 0 ${width} ${height}`, class: 'chart-svg', role: 'img', 'aria-label': 'Sector capital flowing into existing vs pipeline'});
+
+    function tip(sector, trackLabel, val){
+      return `<div class="tt-title">${escHtml(sector)}</div><div class="tt-row"><span>${escHtml(trackLabel)}</span><b>${fmtM(val)}</b></div>`;
+    }
+
+    let y = topPad, exCursor = exNodeY0, piCursor = piNodeY0;
+    rows.forEach((s, i) => {
+      const boxH = boxes[i];
+      const natH = scaleY(s.totalCapital); // true flow thickness, may be less than boxH
+      const bandY0 = y + (boxH - natH) / 2; // centre the true-thickness band inside the label box
+      const exFrac = s.totalCapital ? s[TE].capital / s.totalCapital : 0;
+      const exH = natH * exFrac;
+
+      const rect = svgEl('rect', {x: nodeLeftX, y, width: nodeW, height: Math.max(boxH, 1), rx: 2, fill: 'var(--surface-2)', stroke: 'var(--border)'});
+      svg.appendChild(rect);
+      const label = svgEl('text', {x: nodeLeftX - 10, y: y + boxH / 2 - 3, class: 'row-label', 'text-anchor': 'end'});
+      label.textContent = s.sector; svg.appendChild(label);
+      const vt = svgEl('text', {x: nodeLeftX - 10, y: y + boxH / 2 + 10, class: 'row-sub', 'text-anchor': 'end'});
+      vt.textContent = fmtCompact(s.totalCapital); svg.appendChild(vt);
+
+      if (s[TE].capital > 0){
+        const ty0 = exCursor, ty1 = exCursor + scaleY(s[TE].capital);
+        exCursor = ty1;
+        const p = svgEl('path', {d: ribbonPath(nodeLeftX + nodeW, bandY0, bandY0 + exH, nodeRightX, ty0, ty1), fill: 'var(--track-existing)', opacity: '0.42', class: 'bar'});
+        p.addEventListener('mousemove', e => { showTip(e, tip(s.sector, TE, s[TE].capital)); moveTip(e); });
+        p.addEventListener('mouseleave', hideTip);
+        svg.appendChild(p);
+      }
+      if (s[TP].capital > 0){
+        const ty0 = piCursor, ty1 = piCursor + scaleY(s[TP].capital);
+        piCursor = ty1;
+        const p = svgEl('path', {d: ribbonPath(nodeLeftX + nodeW, bandY0 + exH, bandY0 + natH, nodeRightX, ty0, ty1), fill: 'var(--track-pipeline)', opacity: '0.42', class: 'bar'});
+        p.addEventListener('mousemove', e => { showTip(e, tip(s.sector, TP, s[TP].capital)); moveTip(e); });
+        p.addEventListener('mouseleave', hideTip);
+        svg.appendChild(p);
+      }
+      y += boxH + gap;
+    });
+
+    [[exNodeY0, exNodeY1, 'Existing / committed', existingTotal, 'var(--track-existing)'], [piNodeY0, piNodeY1, 'RONAdapt II pipeline', pipelineTotal, 'var(--track-pipeline)']].forEach(([ny0, ny1, label, total, color]) => {
+      const rect = svgEl('rect', {x: nodeRightX, y: ny0, width: nodeW, height: Math.max(ny1 - ny0, 1), rx: 2, fill: color});
+      svg.appendChild(rect);
+      const t1 = svgEl('text', {x: nodeRightX + nodeW + 10, y: (ny0 + ny1) / 2, class: 'row-label'});
+      t1.textContent = label; svg.appendChild(t1);
+      const t2 = svgEl('text', {x: nodeRightX + nodeW + 10, y: (ny0 + ny1) / 2 + 13, class: 'row-sub'});
+      t2.textContent = fmtCompact(total); svg.appendChild(t2);
+    });
+
+    container.innerHTML = '';
+    container.appendChild(svg);
+  }
+
+  function classifyGap(s, TE, TP){
+    const ex = s[TE].capital, pi = s[TP].capital;
+    if (ex > 0 && pi === 0) return {label: 'No pipeline coverage', cls: 'gap', note: 'Existing/committed capital only — nothing proposed for this sector in RONAdapt II.'};
+    if (pi > 0 && ex === 0) return {label: 'No track record yet', cls: 'emerging', note: 'Only appears in the RONAdapt II pipeline — a new priority with no existing/committed capital.'};
+    if (ex === 0 && pi === 0) return {label: '–', cls: '', note: ''};
+    if (pi < ex * 0.2) return {label: 'Pipeline light', cls: 'concentration', note: 'Existing capital is well ahead of what RONAdapt II proposes next — worth checking whether the sector is genuinely winding down.'};
+    if (pi > ex * 3) return {label: 'Pipeline heavy', cls: 'info', note: 'RONAdapt II proposes far more than is currently committed — a significant scale-up if funded.'};
+    return {label: 'Balanced', cls: '', note: 'Existing capital and the pipeline proposal are roughly proportionate.'};
+  }
+
+  function renderGapsTable(containerId, bySector, TE, TP){
+    const container = document.getElementById(containerId);
+    const rows = bySector.slice().sort((a, b) => b.totalCapital - a.totalCapital);
+    let html = `<table class="data-table"><thead><tr><th>Sector</th><th style="text-align:right">Existing / committed</th><th style="text-align:right">RONAdapt&nbsp;II pipeline</th><th>Gap</th></tr></thead><tbody>`;
+    rows.forEach(s => {
+      const g = classifyGap(s, TE, TP);
+      const cell = g.cls
+        ? `<span class="gap-chip ${g.cls}" title="${escAttr(g.note)}">${escHtml(g.label)}</span>`
+        : `<span class="row-sub" title="${escAttr(g.note)}">${escHtml(g.label)}</span>`;
+      html += `<tr><td>${escHtml(s.sector)}</td><td style="text-align:right">${fmtM(s[TE].capital)}</td><td style="text-align:right">${fmtM(s[TP].capital)}</td><td>${cell}</td></tr>`;
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  }
+
+  function renderFlowsTab(){
+    renderSankey('flow-sankey', DATA.bySector, DATA.TRACK_EXISTING, DATA.TRACK_PIPELINE);
+    renderGapsTable('gaps-table', DATA.bySector, DATA.TRACK_EXISTING, DATA.TRACK_PIPELINE);
+  }
+
   // ================= Application state =================
   let DATA = null;
   let ROWS = null;
@@ -678,7 +790,7 @@
   }
 
   // ================= Tab routing =================
-  const TABS = ['overview', 'projects', 'sectors', 'duplicates', 'hazards'];
+  const TABS = ['overview', 'flows', 'projects', 'sectors', 'duplicates', 'hazards'];
   function applyHashRoute(){
     let tab = (location.hash || '').replace('#', '');
     if (TABS.indexOf(tab) === -1) tab = 'overview';
@@ -1547,6 +1659,7 @@
       DATA = computeAll(ROWS);
       showBannerLoaded(source, ROWS.length);
       renderOverview();
+      renderFlowsTab();
       renderProjectsTab();
       renderSectorsTab();
       renderDuplicatesTab();
