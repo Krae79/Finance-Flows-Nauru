@@ -179,6 +179,12 @@
   .badge.emerging{background:color-mix(in srgb, var(--status-good) 16%, transparent); color:var(--status-good);}
   .badge.info{background:color-mix(in srgb, var(--track-existing) 16%, transparent); color:var(--track-existing);}
   .insight-card p{margin:0; font-size:12.5px; color:var(--text-secondary); line-height:1.5;}
+  /* gap chips (Money Flow & Gaps table) - same palette as insight-card badges, self-contained so they work outside .insight-card */
+  .gap-chip{display:inline-flex; align-items:center; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; padding:3px 8px; border-radius:999px; width:fit-content; cursor:help;}
+  .gap-chip.gap{background:color-mix(in srgb, var(--status-critical) 16%, transparent); color:var(--status-critical);}
+  .gap-chip.emerging{background:color-mix(in srgb, var(--status-good) 16%, transparent); color:var(--status-good);}
+  .gap-chip.concentration{background:color-mix(in srgb, var(--status-warning) 18%, transparent); color:var(--status-warning);}
+  .gap-chip.info{background:color-mix(in srgb, var(--track-existing) 16%, transparent); color:var(--track-existing);}
   .insight-card p b{color:var(--text-primary); font-variant-numeric:tabular-nums;}
   .insight-card .sec-name{font-weight:700; font-size:13px;}
   .insight-card .sec-meta{font-size:11px; color:var(--text-muted);}
@@ -393,7 +399,7 @@
           &middot; Climate &amp; Development Finance
         </p>
         <h1>Finance Flows Dashboard</h1>
-        <p class="hero-sub">Where the money has gone, where RONAdapt&nbsp;II proposes it goes next, who is funding it, and where the gaps sit &mdash; computed live from the project data below, so sheet edits show up here on refresh.</p>
+        <p class="hero-sub">Where the money has gone, where RONAdapt&nbsp;II proposes it goes next, who is funding it, and where the gaps sit.</p>
       </div>
       <div class="hero-meta">
         <div><div class="n" id="m-total">&ndash;</div><div class="l">Tracked capital</div></div>
@@ -411,6 +417,7 @@
 
   <nav class="tabbar" id="tabbar">
     <button class="tab-btn" data-tab="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Overview</button>
+    <button class="tab-btn" data-tab="flows"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v7a4 4 0 0 0 4 4h12"/><path d="M16 12l4 3-4 3"/></svg>Money Flow &amp; Gaps</button>
     <button class="tab-btn" data-tab="projects"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Project Master List</button>
     <button class="tab-btn" data-tab="sectors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>Sectors</button>
     <button class="tab-btn" data-tab="duplicates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Duplicates</button>
@@ -554,6 +561,33 @@
       <p><strong>Methodology notes.</strong> Every figure on this page, including this footer's own project counts, is computed in the browser from the currently loaded rows &mdash; nothing is pre-baked. "Who is funding it" is a mention-based reach measure: a line naming three partners credits its full capital to each of the three, so partner totals overlap and do not sum to the grand total. Rows flagged with a Duplicate Status of "Confirmed overlap" are excluded from the adjusted combined total shown in the deep-analysis panel above (see the Duplicates tab); rows flagged "Possible overlap" are shown everywhere but not excluded from any total.</p>
     </footer>
 
+  </section>
+
+  <!-- ============================= MONEY FLOW & GAPS TAB ============================= -->
+  <section class="tab-page" id="tab-flows">
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-title">How the money flows: sector into existing vs. proposed</p>
+          <p class="panel-desc">Every sector's tracked capital (left) split into what's existing/committed versus what RONAdapt&nbsp;II proposes next (right). Ribbon thickness is proportional to capital &mdash; a thin or missing ribbon on one side is a gap. Hover a ribbon for the exact figure.</p>
+        </div>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--track-existing)"></span>Existing / committed</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--track-pipeline)"></span>RONAdapt&nbsp;II pipeline (proposed)</span>
+        </div>
+      </div>
+      <div id="flow-sankey"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-title">Where the gaps are</p>
+          <p class="panel-desc">Every sector, both tracks, and what the gap between them suggests. "No pipeline coverage" and "No track record yet" are the two clearest gaps; "Pipeline light" and "Pipeline heavy" flag sectors where the two tracks are unusually lopsided rather than absent.</p>
+        </div>
+      </div>
+      <div id="gaps-table"></div>
+    </section>
   </section>
 
   <!-- ============================= PROJECT MASTER LIST TAB ============================= -->
