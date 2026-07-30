@@ -763,7 +763,26 @@
     container.innerHTML = html;
   }
 
+  // Reference figures from the draft Nauru Climate Finance Road Map (ADB technical assistance, 2026) —
+  // hardcoded because they come from that external document, not from projects.csv. See the panel's own
+  // source note for the citation; null means the draft marked the figure "to be validated".
+  const ROADMAP_FINANCING_GAP = [
+    {label: 'NDC (2021 estimate)', value: 118.9, note: 'Superseded by NDC 3.0, not yet published in full.'},
+    {label: 'NDC 3.0 (updated)', value: null, note: 'Marked "to be validated" in the draft Road Map.'},
+    {label: 'Infrastructure Development Plan', value: 389.5, note: 'Includes non-climate-related infrastructure spending.'},
+    {label: 'RONAdapt II (Road Map’s own figure)', value: 249.97, note: 'The draft Road Map’s stated RONAdapt II financing gap.'},
+  ];
+
+  function renderFinancingGap(){
+    const container = document.getElementById('financing-gap-stats');
+    if (!container) return;
+    const cards = ROADMAP_FINANCING_GAP.map(r => `<div class="kpi" title="${escAttr(r.note)}"><div class="v">${r.value == null ? 'TBV' : fmtM(r.value)}</div><div class="l">${escHtml(r.label)}</div></div>`);
+    cards.push(`<div class="kpi" title="RONAdapt II pipeline capital as tracked in this dashboard's data, computed live."><div class="v">${fmtM(DATA.kpis.pipelineCapital)}</div><div class="l">RONAdapt&nbsp;II (tracked in this dashboard)</div></div>`);
+    container.innerHTML = cards.join('');
+  }
+
   function renderFlowsTab(){
+    renderFinancingGap();
     renderSankey('flow-sankey', DATA.bySector, DATA.TRACK_EXISTING, DATA.TRACK_PIPELINE);
     renderGapsTable('gaps-table', DATA.bySector, DATA.TRACK_EXISTING, DATA.TRACK_PIPELINE);
   }
