@@ -1,4 +1,4 @@
-// Finance Flows Dashboard Nauru — live edition.
+// Finance Flows Dashboard Nauru, live edition.
 // Loads project rows from a CSV (Google Sheet publish-to-web link, then local
 // data/projects.csv, then the embedded data/fallback-data.js snapshot), computes
 // every aggregate in the browser, and renders five tabs plus a rule-based chatbot.
@@ -61,7 +61,7 @@
     const startYear = toYear(o['Start Year']);
     const endYear = toYear(o['End Year']);
     let yearLabel = '';
-    if (startYear != null && endYear != null && endYear !== startYear) yearLabel = startYear + '\u2013' + endYear;
+    if (startYear != null && endYear != null && endYear !== startYear) yearLabel = startYear + ' to ' + endYear;
     else if (startYear != null) yearLabel = String(startYear);
     else if (endYear != null) yearLabel = String(endYear);
     return {
@@ -205,7 +205,7 @@
       const capital = rs.reduce((a, r) => a + (r.capitalM || 0), 0);
       const years = [];
       rs.forEach(r => { if (r.startYear != null) years.push(r.startYear); if (r.endYear != null) years.push(r.endYear); });
-      const sub = years.length ? (Math.min(...years) + '\u2013' + Math.max(...years)) : '';
+      const sub = years.length ? (Math.min(...years) + ' to ' + Math.max(...years)) : '';
       return {order: pd.order, label: pd.label, sub: sub, capital: capital, count: rs.length};
     });
 
@@ -271,7 +271,7 @@
     const totalAllSectorCap = bySector.reduce((a, s) => a + s.totalCapital, 0);
     const top3Share = totalAllSectorCap ? top3Sectors.reduce((a, s) => a + s.capital, 0) / totalAllSectorCap * 100 : 0;
     const bottom3Sectors = bySector.slice().sort((a, b) => a.totalCapital - b.totalCapital).slice(0, 3).map(s => ({sector: s.sector, capital: s.totalCapital}));
-    const topPartner = byPartner[0] ? {name: byPartner[0].partner, capital: byPartner[0].capital, mentions: byPartner[0].mentions} : {name: '\u2013', capital: 0, mentions: 0};
+    const topPartner = byPartner[0] ? {name: byPartner[0].partner, capital: byPartner[0].capital, mentions: byPartner[0].mentions} : {name: 'Unspecified', capital: 0, mentions: 0};
     const totalPartnerCap = byPartner.reduce((a, p) => a + p.capital, 0);
     const top3PartnerShare = totalPartnerCap ? byPartner.slice(0, 3).reduce((a, p) => a + p.capital, 0) / totalPartnerCap * 100 : 0;
     const existingHeavyLowPipeline = bySector
@@ -409,13 +409,13 @@
       let bucket, rationale;
       if (ex === 0 && pi > 0){
         bucket = 'gap';
-        rationale = 'Proposed in the RONAdapt\u00a0II pipeline (' + fmtM(pi) + ' across ' + s[TRACK_PIPELINE].count + ' lines) but has zero existing/committed capital on record \u2014 a genuine ask with no track record yet.';
+        rationale = 'Proposed in the RONAdapt\u00a0II pipeline (' + fmtM(pi) + ' across ' + s[TRACK_PIPELINE].count + ' lines) but has zero existing/committed capital on record, a genuine ask with no track record yet.';
       } else if (pi === 0 && ex > 0){
         bucket = 'self-sustaining';
-        rationale = fmtM(ex) + ' already existing/committed across ' + s[TRACK_EXISTING].count + ' lines, with no RONAdapt\u00a0II pipeline ask \u2014 may not need further donor attention right now.';
+        rationale = fmtM(ex) + ' already existing/committed across ' + s[TRACK_EXISTING].count + ' lines, with no RONAdapt\u00a0II pipeline ask, may not need further donor attention right now.';
       } else if (topHalfSet.has(s.sector) && hazardCount >= 2 && partnerCount >= 2){
         bucket = 'important';
-        rationale = fmtM(s.totalCapital) + ' combined, spans ' + hazardCount + ' hazard groups and ' + partnerCount + ' funding partners \u2014 concentration risk worth watching regardless of how resourced it looks.';
+        rationale = fmtM(s.totalCapital) + ' combined, spans ' + hazardCount + ' hazard groups and ' + partnerCount + ' funding partners, concentration risk worth watching regardless of how resourced it looks.';
       } else {
         bucket = 'mixed';
         rationale = fmtM(s.totalCapital) + ' combined across ' + s.totalCount + ' lines; both existing and pipeline capital present, but doesn\u2019t cleanly fit the other buckets.';
@@ -426,7 +426,7 @@
 
   // ================= Formatting helpers =================
   function fmtM(v){
-    if (v == null || isNaN(v)) return '\u2013';
+    if (v == null || isNaN(v)) return 'N/A';
     const abs = Math.abs(v);
     if (abs >= 1000) return '$' + (v / 1000).toFixed(2) + 'B';
     if (abs >= 10) return '$' + v.toFixed(0) + 'M';
@@ -451,71 +451,6 @@
     const el = document.createElementNS(NS, tag);
     for (const k in attrs) el.setAttribute(k, attrs[k]);
     return el;
-  }
-
-  function renderSectorButterfly(containerId, data, TRACK_EXISTING, TRACK_PIPELINE, onSectorClick){
-    const container = document.getElementById(containerId);
-    const rows = data;
-    if (!rows.length){ container.innerHTML = '<div class="empty-state">No sectors in the current data.</div>'; return; }
-    const rowH = 30, gap = 6, leftPad = 190, rightPad = 70, topPad = 8;
-    const width = 980, plotW = (width - leftPad - rightPad) / 2;
-    const height = topPad + rows.length * (rowH + gap);
-    const maxVal = Math.max(1, ...rows.map(r => Math.max(r[TRACK_EXISTING].capital, r[TRACK_PIPELINE].capital)));
-    const scale = v => (v / maxVal) * (plotW - 8);
-    const cx = leftPad + plotW;
-
-    const svg = svgEl('svg', {viewBox: `0 0 ${width} ${height}`, class: 'chart-svg', role: 'img', 'aria-label': 'Sector investment, existing vs pipeline'});
-    svg.appendChild(svgEl('line', {x1: cx, x2: cx, y1: 0, y2: height, class: 'baseline'}));
-
-    rows.forEach((r, i) => {
-      const y = topPad + i * (rowH + gap);
-      const midY = y + rowH / 2;
-      const exVal = r[TRACK_EXISTING].capital, exCount = r[TRACK_EXISTING].count;
-      const piVal = r[TRACK_PIPELINE].capital, piCount = r[TRACK_PIPELINE].count;
-      const exW = scale(exVal), piW = scale(piVal);
-
-      const label = svgEl('text', {x: leftPad - 14, y: midY + 4, class: 'row-label', 'text-anchor': 'end'});
-      label.textContent = r.sector;
-      if (onSectorClick){ label.style.cursor = 'pointer'; label.addEventListener('click', () => onSectorClick(r.sector)); }
-      svg.appendChild(label);
-
-      function tipHtml(sector, track, val, count){
-        return `<div class="tt-title">${escHtml(sector)}</div><div class="tt-row"><span>${escHtml(track)}</span><b>${fmtM(val)}</b></div><div class="tt-row"><span>Line items</span><b>${count}</b></div>`;
-      }
-
-      if (exVal > 0){
-        const bar = svgEl('rect', {x: cx - exW, y, width: exW, height: rowH, rx: 4, fill: 'var(--track-existing)', class: 'bar'});
-        if (onSectorClick) bar.style.cursor = 'pointer';
-        bar.addEventListener('mousemove', e => { showTip(e, tipHtml(r.sector, TRACK_EXISTING, exVal, exCount)); moveTip(e); });
-        bar.addEventListener('mouseleave', hideTip);
-        if (onSectorClick) bar.addEventListener('click', () => onSectorClick(r.sector));
-        svg.appendChild(bar);
-        if (exW > 34){
-          const t = svgEl('text', {x: cx - exW + 8, y: midY + 4, class: 'val-label', fill: '#fff'});
-          t.textContent = fmtCompact(exVal); svg.appendChild(t);
-        } else {
-          const t = svgEl('text', {x: cx - exW - 8, y: midY + 4, class: 'val-label', 'text-anchor': 'end'});
-          t.textContent = fmtCompact(exVal); svg.appendChild(t);
-        }
-      }
-      if (piVal > 0){
-        const bar = svgEl('rect', {x: cx, y, width: piW, height: rowH, rx: 4, fill: 'var(--track-pipeline)', class: 'bar'});
-        if (onSectorClick) bar.style.cursor = 'pointer';
-        bar.addEventListener('mousemove', e => { showTip(e, tipHtml(r.sector, TRACK_PIPELINE, piVal, piCount)); moveTip(e); });
-        bar.addEventListener('mouseleave', hideTip);
-        if (onSectorClick) bar.addEventListener('click', () => onSectorClick(r.sector));
-        svg.appendChild(bar);
-        if (piW > 34){
-          const t = svgEl('text', {x: cx + piW - 8, y: midY + 4, class: 'val-label', fill: '#fff', 'text-anchor': 'end'});
-          t.textContent = fmtCompact(piVal); svg.appendChild(t);
-        } else {
-          const t = svgEl('text', {x: cx + piW + 8, y: midY + 4, class: 'val-label'});
-          t.textContent = fmtCompact(piVal); svg.appendChild(t);
-        }
-      }
-    });
-    container.innerHTML = '';
-    container.appendChild(svg);
   }
 
   function renderHBar(containerId, items, opts){
@@ -646,11 +581,11 @@
       b1.addEventListener('mouseleave', hideTip);
       svg.appendChild(b1);
       const b3 = svgEl('rect', {x: leftPad, y: y + bh + 4, width: Math.max(w3, 2), height: bh, rx: 3, fill: 'var(--seq-700)', class: 'bar'});
-      b3.addEventListener('mousemove', e => { showTip(e, `<div class="tt-title">${escHtml(d.program)}</div><div class="tt-row"><span>Phase 3 (long-term)</span><b>${fmtM(d.phase3)}</b></div><div class="tt-row"><span>Ratio</span><b>${isFinite(d.ratio) ? d.ratio.toFixed(1) + '\u00d7' : '\u2014'}</b></div>`); moveTip(e); });
+      b3.addEventListener('mousemove', e => { showTip(e, `<div class="tt-title">${escHtml(d.program)}</div><div class="tt-row"><span>Phase 3 (long-term)</span><b>${fmtM(d.phase3)}</b></div><div class="tt-row"><span>Ratio</span><b>${isFinite(d.ratio) ? d.ratio.toFixed(1) + '\u00d7' : 'N/A'}</b></div>`); moveTip(e); });
       b3.addEventListener('mouseleave', hideTip);
       svg.appendChild(b3);
       const rt = svgEl('text', {x: leftPad + Math.max(w1, w3) + 8, y: y + rowH / 2 + 4, class: 'val-label'});
-      rt.textContent = isFinite(d.ratio) ? d.ratio.toFixed(1) + '\u00d7' : '\u2014'; svg.appendChild(rt);
+      rt.textContent = isFinite(d.ratio) ? d.ratio.toFixed(1) + '\u00d7' : 'N/A'; svg.appendChild(rt);
     });
     container.innerHTML = '';
     container.appendChild(svg);
@@ -671,7 +606,7 @@
     const rowBudget = 28;
     const totalCap = rows.reduce((a, s) => a + s.totalCapital, 0);
     const k = (rows.length * rowBudget) / totalCap; // px per $M, true proportional scale (used for ribbon thickness)
-    const scaleY = v => v * k; // unfloored — used for ribbon thickness and right-side node totals
+    const scaleY = v => v * k; // unfloored, used for ribbon thickness and right-side node totals
 
     // left node box heights get a readable floor; ribbons inside stay true-to-scale, vertically centred in the box
     const boxes = rows.map(s => Math.max(scaleY(s.totalCapital), minNodeH));
@@ -740,11 +675,11 @@
 
   function classifyGap(s, TE, TP){
     const ex = s[TE].capital, pi = s[TP].capital;
-    if (ex > 0 && pi === 0) return {label: 'No pipeline coverage', cls: 'gap', note: 'Existing/committed capital only — nothing proposed for this sector in RONAdapt II.'};
-    if (pi > 0 && ex === 0) return {label: 'No track record yet', cls: 'emerging', note: 'Only appears in the RONAdapt II pipeline — a new priority with no existing/committed capital.'};
-    if (ex === 0 && pi === 0) return {label: '–', cls: '', note: ''};
-    if (pi < ex * 0.2) return {label: 'Pipeline light', cls: 'concentration', note: 'Existing capital is well ahead of what RONAdapt II proposes next — worth checking whether the sector is genuinely winding down.'};
-    if (pi > ex * 3) return {label: 'Pipeline heavy', cls: 'info', note: 'RONAdapt II proposes far more than is currently committed — a significant scale-up if funded.'};
+    if (ex > 0 && pi === 0) return {label: 'No pipeline coverage', cls: 'gap', note: 'Existing/committed capital only, nothing proposed for this sector in RONAdapt II.'};
+    if (pi > 0 && ex === 0) return {label: 'No track record yet', cls: 'emerging', note: 'Only appears in the RONAdapt II pipeline, a new priority with no existing/committed capital.'};
+    if (ex === 0 && pi === 0) return {label: 'None', cls: '', note: ''};
+    if (pi < ex * 0.2) return {label: 'Pipeline light', cls: 'concentration', note: 'Existing capital is well ahead of what RONAdapt II proposes next, worth checking whether the sector is genuinely winding down.'};
+    if (pi > ex * 3) return {label: 'Pipeline heavy', cls: 'info', note: 'RONAdapt II proposes far more than is currently committed, a significant scale-up if funded.'};
     return {label: 'Balanced', cls: '', note: 'Existing capital and the pipeline proposal are roughly proportionate.'};
   }
 
@@ -763,7 +698,7 @@
     container.innerHTML = html;
   }
 
-  // Reference figures from the draft Nauru Climate Finance Road Map (ADB technical assistance, 2026) —
+  // Reference figures from the draft Nauru Climate Finance Road Map (ADB technical assistance, 2026),
   // hardcoded because they come from that external document, not from projects.csv. See the panel's own
   // source note for the citation; null means the draft marked the figure "to be validated".
   const ROADMAP_FINANCING_GAP = [
@@ -800,7 +735,7 @@
   function showBannerLoaded(source, count){
     const b = document.getElementById('data-banner');
     b.classList.remove('is-loading', 'is-error');
-    document.getElementById('data-banner-text').textContent = `Data loaded from ${source} \u2014 ${count} rows. Edits to the source sheet appear here on reload.`;
+    document.getElementById('data-banner-text').textContent = `Data loaded from ${source}, ${count} rows. Edits to the source sheet appear here on reload.`;
   }
   function showBannerError(err){
     const b = document.getElementById('data-banner');
@@ -809,7 +744,7 @@
   }
 
   // ================= Tab routing =================
-  const TABS = ['overview', 'flows', 'projects', 'sectors', 'duplicates', 'hazards'];
+  const TABS = ['overview', 'ronadapt', 'flows', 'projects', 'sectors', 'duplicates', 'hazards'];
   function applyHashRoute(){
     let tab = (location.hash || '').replace('#', '');
     if (TABS.indexOf(tab) === -1) tab = 'overview';
@@ -820,350 +755,381 @@
   document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => { location.hash = b.getAttribute('data-tab'); }));
   applyHashRoute();
 
-  // ================= Overview tab =================
-  let filterSector = null, filterPartner = null;
-  let globalSearchEl, chipsEl;
-  let sectorSortKey = 'totalCapital', sectorSortDir = -1;
-  let partnerSortKey = 'capital', partnerSortDir = -1;
-  let progSortKey = 'capital', progSortDir = -1;
-  let expandedProgram = null;
-  let activeKpi = null;
+  // ================= Track-scoped overview tabs (Master List Overview / RONAdapt II Priorities) =================
+  // The two tabs below each analyse ONE track only (existing/committed, or the RONAdapt II
+  // pipeline) and never compare or combine the two. computeAll() is reused for the pieces that
+  // are safe to compute from a single-track row set (byPartner, byLocation, byStatus, yearSeries,
+  // phaseSeries, sectorByPhase, byProgram, and most of deepInsights all key off r.track directly
+  // or recompute denominators from the rows they're given, so they come out correct even though
+  // computeAll() derives TRACK_EXISTING/TRACK_PIPELINE from whatever tracks are present).
+  //
+  // The one structure that is NOT safe to reuse single-track is bySector (and anything derived
+  // from it: insights.top3Sectors, kpis.existingCapital + kpis.pipelineCapital added together,
+  // deepInsights.pipelineOnlySectors/existingOnlySectors/adjustedCombinedTotal): with only one
+  // track present, computeAll()'s TRACK_EXISTING and TRACK_PIPELINE both fall back to the same
+  // track name, so a sector's two per-track buckets become the *same* object and totalCapital
+  // silently doubles. aggregateBySector() below is a small, obviously-correct replacement used
+  // instead, and the KPI/insight code is written fresh per tab rather than reusing those fields.
+  let pipelineExpandedProgram = null;
 
-  function partnerHasProgram(partnerName, program){
-    return ROWS.some(r => r.track === DATA.TRACK_PIPELINE && r.program === program &&
-      (r.partners.includes(partnerName) || (r.fundingSourceRaw || '').toLowerCase().includes(partnerName.toLowerCase())));
-  }
-  function setSectorFilter(sector){ filterSector = (filterSector === sector) ? null : sector; refreshOverviewFilters(); }
-  function setPartnerFilter(partner){ filterPartner = (filterPartner === partner) ? null : partner; refreshOverviewFilters(); }
-
-  function renderChips(){
-    const chips = [];
-    if (filterSector) chips.push(`<span class="filter-chip">Sector: ${escHtml(filterSector)}<button data-clear="sector" aria-label="Clear sector filter">&times;</button></span>`);
-    if (filterPartner) chips.push(`<span class="filter-chip partner">Partner: ${escHtml(filterPartner)}<button data-clear="partner" aria-label="Clear partner filter">&times;</button></span>`);
-    chipsEl.innerHTML = chips.join('') || (globalSearchEl.value.trim() ? '' : '<span class="chips-hint">Click a sector or partner below to filter the activities table</span>');
-    chipsEl.querySelectorAll('button[data-clear]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (btn.getAttribute('data-clear') === 'sector') filterSector = null; else filterPartner = null;
-        refreshOverviewFilters();
-      });
+  function aggregateBySector(rows){
+    const map = new Map();
+    rows.forEach(r => {
+      if (!r.sector) return;
+      if (!map.has(r.sector)) map.set(r.sector, {sector: r.sector, capital: 0, count: 0});
+      const o = map.get(r.sector);
+      if (r.capitalM != null) o.capital += r.capitalM;
+      o.count++;
     });
+    return Array.from(map.values()).sort((a, b) => b.capital - a.capital);
   }
 
-  function renderKpiRow(){
-    const k = DATA.kpis;
-    const combined = k.existingCapital + k.pipelineCapital;
-    document.getElementById('m-total').textContent = fmtM(combined);
-    document.getElementById('m-projects').textContent = (k.existingCount + k.pipelinePrograms) + '';
-    document.getElementById('m-partners').textContent = k.partnersCount + '';
+  function renderCardsInto(elId, cards){
+    document.getElementById(elId).innerHTML = cards.map(c => `<div class="insight-card"><span class="badge ${c.badge}">${c.badgeLabel}</span><p>${c.text}</p></div>`).join('');
+  }
 
-    const kpiRow = document.getElementById('kpi-row');
-    const kpiDefs = [
-      {key: 'existing', v: fmtM(k.existingCapital), l: 'Existing / committed capital', dot: 'var(--track-existing)', hint: 'Click to see the rows'},
-      {key: 'pipeline', v: fmtM(k.pipelineCapital), l: 'RONAdapt II pipeline (proposed)', dot: 'var(--track-pipeline)', hint: 'Click to see the rows'},
-      {key: 'existingCount', v: k.existingCount + '', l: 'Committed projects tracked', hint: 'Click to see the rows'},
-      {key: 'programs', v: k.pipelinePrograms + ' <small>(' + k.pipelineCount + ' sub-projects)</small>', l: 'RONAdapt II activities', hint: 'Click to see the list'},
-      {key: 'sectors', v: k.sectorsCount + '', l: 'Sectors represented', hint: 'Click to see the split'},
-    ];
-    kpiRow.innerHTML = kpiDefs.map((d, i) => `
-      <div class="kpi clickable" data-kpi="${d.key}" data-idx="${i}" tabindex="0" role="button">
+  function renderStatTiles(elId, stats){
+    document.getElementById(elId).innerHTML = stats.map(s => `<div class="kpi"><div class="v">${s.v}</div><div class="l">${s.l}</div></div>`).join('');
+  }
+
+  function renderConcentrationTable(elId, sectorConcentration){
+    const el = document.getElementById(elId);
+    if (!sectorConcentration.length){ el.innerHTML = '<div class="empty-state">No partner data to rank.</div>'; return; }
+    const rowsHtml = sectorConcentration.map(s => `
+      <tr><td>${escHtml(s.sector)}</td><td><span class="sector-chip">${escHtml(s.topPartner || 'Unspecified')}</span></td>
+      <td class="num">${s.topShare.toFixed(0)}%</td><td class="num">${fmtM(s.total)}</td><td class="num">${s.partnerCount}</td></tr>`).join('');
+    el.innerHTML = `<table class="data-table"><thead><tr><th>Sector</th><th>Top partner</th><th style="text-align:right">Share</th>
+      <th style="text-align:right">Total assoc. capital</th><th style="text-align:right"># partners</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
+  }
+
+  // Simple sortable display table (sector or partner), no cross-chart filtering: each track tab
+  // is self-contained, so there is no shared activities table beneath it to filter.
+  function renderSimpleSortTable(elId, items, cols, defaultKey){
+    const el = document.getElementById(elId);
+    if (!items.length){ el.innerHTML = '<div class="empty-state">No data.</div>'; return; }
+    let sortKey = defaultKey, sortDir = -1;
+    function draw(){
+      const rows = items.slice().sort((a, b) => {
+        const av = a[sortKey], bv = b[sortKey];
+        return sortDir * (av > bv ? 1 : av < bv ? -1 : 0);
+      });
+      el.innerHTML = `<table class="data-table"><thead><tr>${cols.map(c => `<th data-key="${c.key}"${c.num ? ' style="text-align:right"' : ''} class="${sortKey === c.key ? 'sorted' : ''}">${c.label}${sortKey === c.key ? `<span class="sort-arrow">${sortDir === 1 ? '▲' : '▼'}</span>` : ''}</th>`).join('')}</tr></thead>
+        <tbody>${rows.map(r => `<tr>${cols.map(c => `<td${c.num ? ' class="num"' : ''}>${c.fmt ? c.fmt(r[c.key]) : escHtml(String(r[c.key]))}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+      el.querySelectorAll('th[data-key]').forEach(th => th.addEventListener('click', () => {
+        const key = th.getAttribute('data-key');
+        if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = (key === 'sector' || key === 'partner' || key === 'status') ? 1 : -1; }
+        draw();
+      }));
+    }
+    draw();
+  }
+
+  // KPI row with an optional click-to-drilldown table, shared by both track tabs. Each call gets
+  // its own closed-over "active" state, so the two tabs' drilldowns never interfere.
+  function renderTrackKpis(rowElId, drillElId, kpiDefs){
+    const kpiRow = document.getElementById(rowElId);
+    const drillEl = document.getElementById(drillElId);
+    let active = null;
+    kpiRow.innerHTML = kpiDefs.map(d => `
+      <div class="kpi${d.drill ? ' clickable' : ''}" data-kpi="${d.key}"${d.drill ? ' tabindex="0" role="button"' : ''}>
         <div class="v">${d.dot ? `<span class="dot" style="background:${d.dot}"></span>` : ''}${d.v}</div>
         <div class="l">${d.l}</div>
-        <div class="hint">${d.hint}</div>
+        ${d.drill ? '<div class="hint">Click to see the rows</div>' : ''}
       </div>`).join('');
-
-    function kpiDrillRows(key){
-      const TE = DATA.TRACK_EXISTING, TP = DATA.TRACK_PIPELINE;
-      if (key === 'existing') return {title: 'Existing / committed rows (' + k.existingCount + ')', cols: ['Project', 'Sector', 'Location', 'Capital'],
-        rows: ROWS.filter(r => r.track === TE).slice().sort((a, b) => (b.capitalM || 0) - (a.capitalM || 0)).map(r => [r.name, r.sector || '\u2013', r.location || '\u2013', fmtM(r.capitalM)])};
-      if (key === 'pipeline') return {title: 'RONAdapt II pipeline rows (' + k.pipelineCount + ')', cols: ['Sub-project', 'Activity', 'Sector', 'Capital'],
-        rows: ROWS.filter(r => r.track === TP).slice().sort((a, b) => (b.capitalM || 0) - (a.capitalM || 0)).map(r => [r.name, r.program || '\u2013', r.sector || '\u2013', fmtM(r.capitalM)])};
-      if (key === 'existingCount') return kpiDrillRows('existing');
-      if (key === 'programs') return {title: 'RONAdapt II activities (' + k.pipelinePrograms + ')', cols: ['Activity', 'Sector', 'Proposed capital', 'Sub-projects'],
-        rows: DATA.byProgram.slice().sort((a, b) => b.capital - a.capital).map(p => [p.program, p.sector, fmtM(p.capital), p.count])};
-      if (key === 'sectors') return {title: 'All sectors (' + k.sectorsCount + ')', cols: ['Sector', 'Existing', 'Pipeline', 'Total'],
-        rows: DATA.bySector.slice().sort((a, b) => b.totalCapital - a.totalCapital).map(s => [s.sector, fmtM(s[TE].capital), fmtM(s[TP].capital), fmtM(s.totalCapital)])};
-      return null;
-    }
-    function renderKpiDrill(){
-      const kpiDrill = document.getElementById('kpi-drilldown');
-      if (activeKpi == null){ kpiDrill.innerHTML = ''; return; }
-      const d = kpiDrillRows(activeKpi);
-      if (!d){ kpiDrill.innerHTML = ''; return; }
-      kpiDrill.innerHTML = `<div class="drill-panel">
-        <div class="drill-head"><h3>${escHtml(d.title)}</h3><button class="drill-close" id="drill-close" aria-label="Close">&times;</button></div>
-        <table class="data-table"><thead><tr>${d.cols.map((c, i) => `<th${i > 0 && i === d.cols.length - 1 ? ' style="text-align:right"' : ''}>${escHtml(c)}</th>`).join('')}</tr></thead>
-        <tbody>${d.rows.map(r => `<tr>${r.map((v, i) => `<td${i === r.length - 1 ? ' class="num"' : ''}>${escHtml(String(v))}</td>`).join('')}</tr>`).join('')}</tbody></table>
+    function renderDrill(){
+      if (active == null){ drillEl.innerHTML = ''; return; }
+      const d = kpiDefs.find(x => x.key === active);
+      if (!d || !d.drill){ drillEl.innerHTML = ''; return; }
+      drillEl.innerHTML = `<div class="drill-panel">
+        <div class="drill-head"><h3>${escHtml(d.drill.title)}</h3><button class="drill-close" aria-label="Close">&times;</button></div>
+        <table class="data-table"><thead><tr>${d.drill.cols.map((c, i) => `<th${i > 0 && i === d.drill.cols.length - 1 ? ' style="text-align:right"' : ''}>${escHtml(c)}</th>`).join('')}</tr></thead>
+        <tbody>${d.drill.rows.map(r => `<tr>${r.map((v, i) => `<td${i === r.length - 1 ? ' class="num"' : ''}>${escHtml(String(v))}</td>`).join('')}</tr>`).join('')}</tbody></table>
       </div>`;
-      document.getElementById('drill-close').addEventListener('click', () => { activeKpi = null; syncKpiActive(); renderKpiDrill(); });
+      drillEl.querySelector('.drill-close').addEventListener('click', () => { active = null; sync(); renderDrill(); });
     }
-    function syncKpiActive(){
-      kpiRow.querySelectorAll('.kpi').forEach(el => el.classList.toggle('active', activeKpi != null && el.getAttribute('data-kpi') === activeKpi));
+    function sync(){
+      kpiRow.querySelectorAll('.kpi[data-kpi]').forEach(el => el.classList.toggle('active', active != null && el.getAttribute('data-kpi') === active));
     }
-    kpiRow.querySelectorAll('.kpi[data-kpi]').forEach(el => {
+    kpiRow.querySelectorAll('.kpi.clickable[data-kpi]').forEach(el => {
       const activate = () => {
         const key = el.getAttribute('data-kpi');
-        activeKpi = activeKpi === key ? null : key;
-        syncKpiActive(); renderKpiDrill();
-        if (activeKpi) document.getElementById('kpi-drilldown').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+        active = active === key ? null : key;
+        sync(); renderDrill();
+        if (active) drillEl.scrollIntoView({behavior: 'smooth', block: 'nearest'});
       };
       el.addEventListener('click', activate);
       el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); activate(); } });
     });
   }
 
-  function renderInsightCards(){
-    const ins = DATA.insights, TE = DATA.TRACK_EXISTING, TP = DATA.TRACK_PIPELINE;
-    const cards = [];
-    if (ins.top3Sectors.length){
-      cards.push({badge: 'concentration', badgeLabel: 'Concentration',
-        text: `<b>${ins.top3Sectors.map(s => s.sector).join(', ')}</b> account for <b>${ins.top3Share.toFixed(0)}%</b> of all tracked capital (existing + pipeline combined).`});
-    }
-    cards.push({badge: 'concentration', badgeLabel: 'Funder concentration',
-      text: `<b>${ins.topPartner.name}</b> is the single largest named partner at <b>${fmtM(ins.topPartner.capital)}</b> across ${ins.topPartner.mentions} lines; the top 3 partners together touch <b>${ins.top3PartnerShare.toFixed(0)}%</b> of associated capital.`});
-    if (ins.existingHeavyLowPipeline.length){
-      const s = ins.existingHeavyLowPipeline[0];
-      cards.push({badge: 'gap', badgeLabel: 'Resourced, pipeline light',
-        text: `<b>${s.sector}</b> carries ${fmtM(s.existing)} in existing/committed capital but only <b>${fmtM(s.pipeline)}</b> in the RONAdapt&nbsp;II pipeline, worth checking whether it's genuinely done, or falling out of view.`});
-    }
-    if (ins.pipelineHeavyLowExisting.length){
-      const s = ins.pipelineHeavyLowExisting[0];
-      cards.push({badge: 'emerging', badgeLabel: 'Emerging priority',
-        text: `<b>${s.sector}</b> has almost no existing footprint (${fmtM(s.existing)}) but RONAdapt&nbsp;II proposes <b>${fmtM(s.pipeline)}</b>, a genuinely new investment thrust.`});
-    }
-    const zeroPipeline = DATA.bySector.filter(s => s[TP].capital === 0 && s[TE].capital > 0);
-    if (zeroPipeline.length){
-      cards.push({badge: 'gap', badgeLabel: 'Absent from the pipeline',
-        text: `<b>${zeroPipeline.map(s => s.sector).join(', ')}</b> ${zeroPipeline.length > 1 ? 'have' : 'has'} existing capital on record but <b>zero</b> line items in RONAdapt&nbsp;II's priority activities.`});
-    }
-    cards.push({badge: 'info', badgeLabel: 'Backloaded',
-      text: `<b>${ins.phase3Share.toFixed(0)}%</b> of RONAdapt&nbsp;II's proposed capital sits in the long-term horizon (Phase 3), a reminder that most of the pipeline is not yet funded, only planned.`});
-    document.getElementById('insight-cards').innerHTML = cards.map(c => `
-      <div class="insight-card"><span class="badge ${c.badge}">${c.badgeLabel}</span><p>${c.text}</p></div>`).join('');
-  }
-
-  function renderSectorTable(){
-    const el = document.getElementById('sector-table');
-    const TE = DATA.TRACK_EXISTING, TP = DATA.TRACK_PIPELINE;
-    const q = globalSearchEl.value.trim().toLowerCase();
-    let rows = DATA.bySector.filter(s => !q || s.sector.toLowerCase().includes(q));
-    rows = rows.slice().sort((a, b) => {
-      const pick = s => sectorSortKey === 'sector' ? s.sector
-        : sectorSortKey === 'existing' ? s[TE].capital
-        : sectorSortKey === 'pipeline' ? s[TP].capital
-        : sectorSortKey === 'count' ? s.totalCount
-        : s.totalCapital;
-      const av = pick(a), bv = pick(b);
-      return sectorSortDir * (av > bv ? 1 : av < bv ? -1 : 0);
-    });
-    if (!rows.length){ el.innerHTML = '<div class="empty-state">No sectors match.</div>'; return; }
-    const cols = [
-      {key: 'sector', label: 'Sector'}, {key: 'existing', label: 'Existing', num: true},
-      {key: 'pipeline', label: 'Pipeline', num: true}, {key: 'count', label: 'Line items', num: true},
-      {key: 'totalCapital', label: 'Total', num: true},
-    ];
-    el.innerHTML = `<table class="data-table"><thead><tr>${cols.map(c => `<th data-key="${c.key}"${c.num ? ' style="text-align:right"' : ''} class="${sectorSortKey === c.key ? 'sorted' : ''}">${c.label}${sectorSortKey === c.key ? `<span class="sort-arrow">${sectorSortDir === 1 ? '\u25b2' : '\u25bc'}</span>` : ''}</th>`).join('')}</tr></thead>
-      <tbody>${rows.map(s => `<tr class="${filterSector === s.sector ? 'row-active' : ''}" data-sector="${escAttr(s.sector)}">
-        <td>${escHtml(s.sector)}</td><td class="num">${fmtM(s[TE].capital)}</td><td class="num">${fmtM(s[TP].capital)}</td>
-        <td class="num">${s.totalCount}</td><td class="num">${fmtM(s.totalCapital)}</td></tr>`).join('')}</tbody></table>`;
-    el.querySelectorAll('th[data-key]').forEach(th => th.addEventListener('click', () => {
-      const key = th.getAttribute('data-key');
-      if (sectorSortKey === key) sectorSortDir *= -1; else { sectorSortKey = key; sectorSortDir = key === 'sector' ? 1 : -1; }
-      renderSectorTable();
-    }));
-    el.querySelectorAll('tr[data-sector]').forEach(tr => tr.addEventListener('click', () => setSectorFilter(tr.getAttribute('data-sector'))));
-  }
-
-  function renderPartnerTable(){
-    const el = document.getElementById('partner-table');
-    const TE = DATA.TRACK_EXISTING, TP = DATA.TRACK_PIPELINE;
-    const q = globalSearchEl.value.trim().toLowerCase();
-    let rows = DATA.byPartner.filter(p => !q || p.partner.toLowerCase().includes(q));
-    rows = rows.slice().sort((a, b) => {
-      const pick = p => partnerSortKey === 'partner' ? p.partner
-        : partnerSortKey === 'mentions' ? p.mentions
-        : partnerSortKey === 'existing' ? (p.capitalByTrack[TE] || 0)
-        : partnerSortKey === 'pipeline' ? (p.capitalByTrack[TP] || 0)
-        : p.capital;
-      const av = pick(a), bv = pick(b);
-      return partnerSortDir * (av > bv ? 1 : av < bv ? -1 : 0);
-    });
-    if (!rows.length){ el.innerHTML = '<div class="empty-state">No partners match.</div>'; return; }
-    const cols = [
-      {key: 'partner', label: 'Partner'}, {key: 'existing', label: 'Existing', num: true},
-      {key: 'pipeline', label: 'Pipeline', num: true}, {key: 'mentions', label: 'Lines', num: true},
-      {key: 'capital', label: 'Total', num: true},
-    ];
-    el.innerHTML = `<table class="data-table"><thead><tr>${cols.map(c => `<th data-key="${c.key}"${c.num ? ' style="text-align:right"' : ''} class="${partnerSortKey === c.key ? 'sorted' : ''}">${c.label}${partnerSortKey === c.key ? `<span class="sort-arrow">${partnerSortDir === 1 ? '\u25b2' : '\u25bc'}</span>` : ''}</th>`).join('')}</tr></thead>
-      <tbody>${rows.map(p => `<tr class="${filterPartner === p.partner ? 'row-active' : ''}" data-partner="${escAttr(p.partner)}">
-        <td>${escHtml(p.partner)}</td><td class="num">${fmtM(p.capitalByTrack[TE] || 0)}</td><td class="num">${fmtM(p.capitalByTrack[TP] || 0)}</td>
-        <td class="num">${p.mentions}</td><td class="num">${fmtM(p.capital)}</td></tr>`).join('')}</tbody></table>`;
-    el.querySelectorAll('th[data-key]').forEach(th => th.addEventListener('click', () => {
-      const key = th.getAttribute('data-key');
-      if (partnerSortKey === key) partnerSortDir *= -1; else { partnerSortKey = key; partnerSortDir = key === 'partner' ? 1 : -1; }
-      renderPartnerTable();
-    }));
-    el.querySelectorAll('tr[data-partner]').forEach(tr => tr.addEventListener('click', () => setPartnerFilter(tr.getAttribute('data-partner'))));
-  }
-
-  function programSubItems(program){
-    return ROWS.filter(r => r.track === DATA.TRACK_PIPELINE && r.program === program);
-  }
-
-  function renderProgramTable(){
-    const tableEl = document.getElementById('program-table');
-    const q = globalSearchEl.value.trim().toLowerCase();
-    let programs = DATA.byProgram.slice();
-    let matchedSubByProgram = {};
-    if (filterSector) programs = programs.filter(p => p.sector === filterSector);
-    if (filterPartner) programs = programs.filter(p => partnerHasProgram(filterPartner, p.program));
-    if (q){
-      programs = programs.filter(p => {
-        if (p.program.toLowerCase().includes(q) || (p.sector || '').toLowerCase().includes(q)) return true;
-        const subs = programSubItems(p.program).filter(s => s.name.toLowerCase().includes(q) || (s.fundingSourceRaw || '').toLowerCase().includes(q));
-        if (subs.length){ matchedSubByProgram[p.program] = subs; return true; }
-        return false;
-      });
-    }
-    programs.sort((a, b) => progSortDir * (a[progSortKey] > b[progSortKey] ? 1 : a[progSortKey] < b[progSortKey] ? -1 : 0));
-
-    if (!programs.length){
-      tableEl.innerHTML = q ? '<div class="empty-state">No activities match &ldquo;' + escHtml(q) + '&rdquo;</div>' : '<div class="empty-state">No activities match the current sector/partner filter.</div>';
-      return;
-    }
-    const maxCap = Math.max(1, ...DATA.byProgram.map(p => p.capital));
-    let html = `<table class="data-table"><thead><tr>
-      <th data-key="program">Activity</th><th data-key="sector">Sector</th>
-      <th data-key="capital" style="text-align:right">Proposed capital</th><th style="width:120px"></th>
-      <th data-key="count" style="text-align:right">Sub-projects</th></tr></thead><tbody>`;
-    programs.forEach(p => {
-      const isOpen = expandedProgram === p.program;
-      html += `<tr class="prog-row ${isOpen ? 'expanded' : ''}" data-program="${escAttr(p.program)}">
-        <td><span class="expand-icon">&#9656;</span>${escHtml(p.program)}</td>
-        <td><span class="sector-chip">${escHtml(p.sector || '\u2013')}</span></td>
-        <td class="num">${fmtM(p.capital)}</td>
-        <td><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${(p.capital / maxCap * 100).toFixed(1)}%"></div></div></td>
-        <td class="num">${p.count}</td></tr>
-      <tr class="subrow" data-for="${escAttr(p.program)}"><td colspan="5"><div class="subrow-inner"></div></td></tr>`;
-    });
-    html += '</tbody></table>';
-    tableEl.innerHTML = html;
-
-    tableEl.querySelectorAll('thead th[data-key]').forEach(th => {
-      th.addEventListener('click', () => {
-        const key = th.getAttribute('data-key');
-        if (progSortKey === key) progSortDir *= -1; else { progSortKey = key; progSortDir = (key === 'program' || key === 'sector') ? 1 : -1; }
-        renderProgramTable();
-      });
-    });
-    tableEl.querySelectorAll('tr.prog-row').forEach(tr => {
-      tr.addEventListener('click', () => {
-        const program = tr.getAttribute('data-program');
-        expandedProgram = expandedProgram === program ? null : program;
-        renderProgramTable();
-        if (expandedProgram){
-          const subInner = tableEl.querySelector(`.subrow[data-for="${cssEsc(expandedProgram)}"] .subrow-inner`);
-          const subs = (matchedSubByProgram[expandedProgram] || programSubItems(expandedProgram)).slice().sort((a, b) => (b.capitalM || 0) - (a.capitalM || 0));
-          subInner.innerHTML = subs.map(s => `
-            <div class="sub-item">
-              <div class="si-name">${escHtml(s.name)}</div>
-              <div class="si-phase">${escHtml(s.yearLabel || '')}</div>
-              <div class="si-partners">${escHtml(s.fundingSourceRaw || '\u2013')}</div>
-              <div class="si-cap">${fmtM(s.capitalM)}</div>
-            </div>`).join('');
-        }
-      });
-    });
-  }
-
-  function refreshOverviewFilters(){
-    renderChips();
-    renderSectorTable();
-    renderPartnerTable();
-    renderProgramTable();
-  }
-
-  function renderDeepAnalysis(){
-    const di = DATA.deepInsights, k = DATA.kpis, dup = DATA.duplicates;
-    const dc = [];
-    dc.push({badge: 'gap', badgeLabel: 'Aspirational, not committed',
-      text: `<b>${di.unrealizedShare.toFixed(0)}%</b> of the existing track's capital (${fmtM(di.unrealizedCap)}) is not yet Completed, Funded, Ongoing, Near completion, or Under implementation. RONAdapt&nbsp;II's own pipeline is effectively all &ldquo;Seeking funding,&rdquo; so almost none of its ${fmtM(k.pipelineCapital)} is secured either.`});
-    if (dup.confirmedRows.length || dup.possibleRows.length){
+  // Duplicate-flag insight card, scoped to a single track's own rows (each row is flagged
+  // individually in the source data, so this is a straight filter, not a cross-track computation).
+  function buildDuplicateInsight(rows, totalCap){
+    const confirmed = rows.filter(r => /confirmed overlap/i.test(r.duplicateStatus));
+    const possible = rows.filter(r => /possible overlap/i.test(r.duplicateStatus));
+    const excluded = confirmed.reduce((a, r) => a + (r.capitalM || 0), 0);
+    const adjustedTotal = totalCap - excluded;
+    let card;
+    if (confirmed.length || possible.length){
       let s = '';
-      if (dup.confirmedRows.length) s += `<b>${dup.confirmedRows.length}</b> row${dup.confirmedRows.length === 1 ? '' : 's'} totalling <b>${fmtM(dup.excludedCapital)}</b> ${dup.confirmedRows.length === 1 ? 'is' : 'are'} flagged as a confirmed overlap and excluded from the adjusted total (see the Duplicates tab).`;
-      if (dup.possibleRows.length) s += ` A further <b>${dup.possibleRows.length}</b> row${dup.possibleRows.length === 1 ? '' : 's'} totalling ${fmtM(dup.reviewCapital)} ${dup.possibleRows.length === 1 ? 'is' : 'are'} flagged for review but not excluded.`;
-      s += ` Adjusted combined total: <b>${fmtM(di.adjustedCombinedTotal)}</b> vs. raw ${fmtM(k.existingCapital + k.pipelineCapital)}.`;
-      dc.push({badge: 'gap', badgeLabel: 'Possible double-counting', text: s});
+      if (confirmed.length) s += `<b>${confirmed.length}</b> row${confirmed.length === 1 ? '' : 's'} totalling <b>${fmtM(excluded)}</b> ${confirmed.length === 1 ? 'is' : 'are'} flagged as a confirmed overlap and excluded from this track's adjusted total (see the Duplicates tab).`;
+      if (possible.length) s += ` A further <b>${possible.length}</b> row${possible.length === 1 ? '' : 's'} ${possible.length === 1 ? 'is' : 'are'} flagged for review but not excluded.`;
+      s += ` Adjusted total: <b>${fmtM(adjustedTotal)}</b> versus raw ${fmtM(totalCap)}.`;
+      card = {badge: 'gap', badgeLabel: 'Possible double-counting', text: s};
     } else {
-      dc.push({badge: 'info', badgeLabel: 'No flagged overlaps', text: `No rows are currently flagged with a Duplicate Status, so the adjusted and raw combined totals match: <b>${fmtM(di.adjustedCombinedTotal)}</b>.`});
+      card = {badge: 'info', badgeLabel: 'No flagged overlaps', text: `No rows in this track are currently flagged with a Duplicate Status, so the adjusted and raw totals match: <b>${fmtM(adjustedTotal)}</b>.`};
     }
-    if (di.sectorConcentration.length){
-      const topConc = di.sectorConcentration[0], secondConc = di.sectorConcentration[1];
-      let s = `<b>${topConc.topPartner}</b> alone supplies <b>${topConc.topShare.toFixed(0)}%</b> of ${topConc.sector}'s tracked capital`;
-      if (secondConc) s += `; <b>${secondConc.topPartner}</b> supplies <b>${secondConc.topShare.toFixed(0)}%</b> of ${secondConc.sector}'s`;
-      s += `. High shares mean a sector leans on one institution's continued appetite.`;
-      dc.push({badge: 'concentration', badgeLabel: 'Single-funder dependency', text: s});
+    return {card, adjustedTotal, confirmed, possible, excluded};
+  }
+
+  function buildConcentrationCard(sectorConcentration, possessive){
+    if (!sectorConcentration.length) return null;
+    const t0 = sectorConcentration[0], t1 = sectorConcentration[1];
+    let s = `<b>${t0.topPartner}</b> alone supplies <b>${t0.topShare.toFixed(0)}%</b> of ${t0.sector}'s ${possessive} capital`;
+    if (t1) s += `; <b>${t1.topPartner}</b> supplies <b>${t1.topShare.toFixed(0)}%</b> of ${t1.sector}'s`;
+    s += `. High shares mean a sector leans on one institution's continued appetite.`;
+    return {badge: 'concentration', badgeLabel: 'Single-funder dependency', text: s};
+  }
+
+  // ---- Master List Overview tab (existing / committed rows only) ----
+  function renderExistingOverview(existingRows){
+    const EX = computeAll(existingRows);
+    const di = EX.deepInsights;
+    const bySectorEx = aggregateBySector(existingRows);
+    const totalCap = existingRows.reduce((a, r) => a + (r.capitalM || 0), 0);
+
+    const kpiDefs = [
+      {key: 'capital', v: fmtM(totalCap), l: 'Existing / committed capital', dot: 'var(--track-existing)',
+        drill: {title: 'Existing / committed rows (' + existingRows.length + ')', cols: ['Project', 'Sector', 'Location', 'Capital'],
+          rows: existingRows.slice().sort((a, b) => (b.capitalM || 0) - (a.capitalM || 0)).map(r => [r.name, r.sector || 'Unspecified', r.location || 'Unspecified', fmtM(r.capitalM)])}},
+      {key: 'count', v: existingRows.length + '', l: 'Committed projects tracked',
+        drill: {title: 'Existing / committed rows (' + existingRows.length + ')', cols: ['Project', 'Sector', 'Location', 'Capital'],
+          rows: existingRows.slice().sort((a, b) => (b.capitalM || 0) - (a.capitalM || 0)).map(r => [r.name, r.sector || 'Unspecified', r.location || 'Unspecified', fmtM(r.capitalM)])}},
+      {key: 'sectors', v: bySectorEx.length + '', l: 'Sectors represented',
+        drill: {title: 'All sectors (' + bySectorEx.length + ')', cols: ['Sector', 'Line items', 'Capital'], rows: bySectorEx.map(s => [s.sector, s.count, fmtM(s.capital)])}},
+      {key: 'partners', v: EX.byPartner.length + '', l: 'Funding partners named',
+        drill: {title: 'Funding partners (' + EX.byPartner.length + ')', cols: ['Partner', 'Lines', 'Capital'], rows: EX.byPartner.slice().sort((a, b) => b.capital - a.capital).map(p => [p.partner, p.mentions, fmtM(p.capital)])}},
+      {key: 'locations', v: EX.byLocation.length + '', l: 'Locations tracked',
+        drill: {title: 'Locations (' + EX.byLocation.length + ')', cols: ['Location', 'Projects', 'Capital'], rows: EX.byLocation.slice().sort((a, b) => b.capital - a.capital).map(l => [l.location, l.count, fmtM(l.capital)])}},
+    ];
+    renderTrackKpis('ex-kpi-row', 'ex-kpi-drilldown', kpiDefs);
+
+    const top3 = bySectorEx.slice(0, 3);
+    const totalSectorCap = bySectorEx.reduce((a, s) => a + s.capital, 0);
+    const top3Share = totalSectorCap ? top3.reduce((a, s) => a + s.capital, 0) / totalSectorCap * 100 : 0;
+    const topPartner = EX.byPartner[0];
+    const totalPartnerCap = EX.byPartner.reduce((a, p) => a + p.capital, 0);
+    const top3PartnerShare = totalPartnerCap ? EX.byPartner.slice(0, 3).reduce((a, p) => a + p.capital, 0) / totalPartnerCap * 100 : 0;
+    const topLoc = EX.byLocation[0];
+
+    const cards = [];
+    if (top3.length) cards.push({badge: 'concentration', badgeLabel: 'Concentration', text: `<b>${top3.map(s => s.sector).join(', ')}</b> account for <b>${top3Share.toFixed(0)}%</b> of all existing/committed capital.`});
+    if (topPartner) cards.push({badge: 'concentration', badgeLabel: 'Funder concentration', text: `<b>${topPartner.partner}</b> is the single largest named partner at <b>${fmtM(topPartner.capital)}</b> across ${topPartner.mentions} lines; the top 3 partners together touch <b>${top3PartnerShare.toFixed(0)}%</b> of associated capital.`});
+    cards.push({badge: 'gap', badgeLabel: 'Aspirational, not committed', text: `<b>${di.unrealizedShare.toFixed(0)}%</b> of committed capital (${fmtM(di.unrealizedCap)}) is not yet Completed, Funded, Ongoing, Near completion, or Under implementation.`});
+    if (topLoc) cards.push({badge: 'info', badgeLabel: 'Geographic concentration', text: `<b>${topLoc.location}</b> has the most committed capital on record, <b>${fmtM(topLoc.capital)}</b> across ${topLoc.count} projects.`});
+    const concCard1 = buildConcentrationCard(di.sectorConcentration, 'tracked');
+    if (concCard1) cards.push(concCard1);
+    renderCardsInto('ex-insight-cards', cards);
+
+    renderHBar('ex-sector-chart', bySectorEx.map(s => ({label: s.sector, value: s.capital})), {
+      width: 960, leftPad: 200, color: 'var(--track-existing)',
+      tip: d => { const s = bySectorEx.find(x => x.sector === d.label); return `<div class="tt-title">${escHtml(s.sector)}</div><div class="tt-row"><span>Capital</span><b>${fmtM(s.capital)}</b></div><div class="tt-row"><span>Line items</span><b>${s.count}</b></div>`; },
+    });
+    renderSimpleSortTable('ex-sector-table', bySectorEx, [
+      {key: 'sector', label: 'Sector'}, {key: 'count', label: 'Line items', num: true}, {key: 'capital', label: 'Capital', num: true, fmt: fmtM},
+    ], 'capital');
+
+    renderHBar('ex-partner-chart', EX.byPartner.slice(0, 12).map(p => ({label: p.partner, value: p.capital})), {
+      width: 900, color: 'var(--track-existing)',
+      tip: d => { const p = EX.byPartner.find(x => x.partner === d.label); return `<div class="tt-title">${escHtml(p.partner)}</div><div class="tt-row"><span>Associated capital</span><b>${fmtM(p.capital)}</b></div><div class="tt-row"><span>Lines mentioning</span><b>${p.mentions}</b></div>`; },
+    });
+    renderSimpleSortTable('ex-partner-table', EX.byPartner, [
+      {key: 'partner', label: 'Partner'}, {key: 'mentions', label: 'Lines', num: true}, {key: 'capital', label: 'Capital', num: true, fmt: fmtM},
+    ], 'capital');
+
+    renderHBar('ex-location-chart', EX.byLocation.slice(0, 9).map(l => ({label: l.location, value: l.capital})), {
+      width: 520, color: 'var(--track-existing)',
+      tip: d => { const l = EX.byLocation.find(x => x.location === d.label); return `<div class="tt-title">${escHtml(l.location)}</div><div class="tt-row"><span>Capital</span><b>${fmtM(l.capital)}</b></div><div class="tt-row"><span>Projects</span><b>${l.count}</b></div>`; },
+    });
+    renderVBar('ex-year-chart', EX.yearSeries.map(y => ({label: String(y.year), value: y.capital})), {width: 460, color: 'var(--track-existing)'});
+    renderHBar('ex-status-chart', EX.byStatus.map(s => ({label: s.status, value: s.capital})), {
+      width: 520, color: 'var(--track-existing)',
+      tip: d => { const s = EX.byStatus.find(x => x.status === d.label); return `<div class="tt-title">${escHtml(s.status)}</div><div class="tt-row"><span>Capital</span><b>${fmtM(s.capital)}</b></div><div class="tt-row"><span>Lines</span><b>${s.count}</b></div>`; },
+    });
+
+    const dup = buildDuplicateInsight(existingRows, totalCap);
+    const deepCards = [{badge: 'gap', badgeLabel: 'Aspirational, not committed', text: `<b>${di.unrealizedShare.toFixed(0)}%</b> of committed capital (${fmtM(di.unrealizedCap)}) is not yet Completed, Funded, Ongoing, Near completion, or Under implementation.`}, dup.card];
+    const concCard2 = buildConcentrationCard(di.sectorConcentration, 'tracked');
+    if (concCard2) deepCards.push(concCard2);
+    renderCardsInto('ex-deep-cards', deepCards);
+    renderConcentrationTable('ex-concentration-table', di.sectorConcentration);
+
+    const population = 12000;
+    const medianCaps = existingRows.filter(r => r.capitalM != null).map(r => r.capitalM).sort((a, b) => a - b);
+    const stats = [
+      {v: fmtM(median(medianCaps)), l: 'Median committed project size'},
+      {v: `${di.noPartnerCount}`, l: `Lines naming no partner (${fmtM(di.noPartnerCapital)})`},
+      {v: `${fmtM(di.govSelfCapital)}`, l: `Nauru Govt named as self-financier (${di.govSelfCount} lines)`},
+      {v: `$${Math.round(totalCap * 1e6 / population).toLocaleString()}`, l: `Per person tracked (pop. ~${population.toLocaleString()})`},
+      {v: fmtM(dup.adjustedTotal), l: 'Adjusted total, after excluding confirmed overlaps'},
+    ];
+    renderStatTiles('ex-deep-stats', stats);
+  }
+
+  // ---- RONAdapt II Priorities tab (pipeline rows only) ----
+  function renderRonadaptProgramTable(byProgram, subItemsFn){
+    const tableEl = document.getElementById('pi-program-table');
+    let sortKey = 'capital', sortDir = -1;
+    function draw(){
+      if (!byProgram.length){ tableEl.innerHTML = '<div class="empty-state">No activities in the current data.</div>'; return; }
+      const programs = byProgram.slice().sort((a, b) => sortDir * (a[sortKey] > b[sortKey] ? 1 : a[sortKey] < b[sortKey] ? -1 : 0));
+      const maxCap = Math.max(1, ...byProgram.map(p => p.capital));
+      let html = `<table class="data-table"><thead><tr>
+        <th data-key="program">Activity</th><th data-key="sector">Sector</th>
+        <th data-key="capital" style="text-align:right">Proposed capital</th><th style="width:120px"></th>
+        <th data-key="count" style="text-align:right">Sub-projects</th></tr></thead><tbody>`;
+      programs.forEach(p => {
+        const isOpen = pipelineExpandedProgram === p.program;
+        html += `<tr class="prog-row ${isOpen ? 'expanded' : ''}" data-program="${escAttr(p.program)}">
+          <td><span class="expand-icon">&#9656;</span>${escHtml(p.program)}</td>
+          <td><span class="sector-chip">${escHtml(p.sector || 'Unspecified')}</span></td>
+          <td class="num">${fmtM(p.capital)}</td>
+          <td><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${(p.capital / maxCap * 100).toFixed(1)}%"></div></div></td>
+          <td class="num">${p.count}</td></tr>
+        <tr class="subrow" data-for="${escAttr(p.program)}"><td colspan="5"><div class="subrow-inner"></div></td></tr>`;
+      });
+      html += '</tbody></table>';
+      tableEl.innerHTML = html;
+      tableEl.querySelectorAll('thead th[data-key]').forEach(th => th.addEventListener('click', () => {
+        const key = th.getAttribute('data-key');
+        if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = (key === 'program' || key === 'sector') ? 1 : -1; }
+        draw();
+      }));
+      tableEl.querySelectorAll('tr.prog-row').forEach(tr => {
+        tr.addEventListener('click', () => {
+          const program = tr.getAttribute('data-program');
+          pipelineExpandedProgram = pipelineExpandedProgram === program ? null : program;
+          draw();
+          if (pipelineExpandedProgram){
+            const subInner = tableEl.querySelector(`.subrow[data-for="${cssEsc(pipelineExpandedProgram)}"] .subrow-inner`);
+            const subs = subItemsFn(pipelineExpandedProgram).slice().sort((a, b) => (b.capitalM || 0) - (a.capitalM || 0));
+            subInner.innerHTML = subs.map(s => `
+              <div class="sub-item">
+                <div class="si-name">${escHtml(s.name)}</div>
+                <div class="si-phase">${escHtml(s.yearLabel || '')}</div>
+                <div class="si-partners">${escHtml(s.fundingSourceRaw || 'Unspecified')}</div>
+                <div class="si-cap">${fmtM(s.capitalM)}</div>
+              </div>`).join('');
+          }
+        });
+      });
     }
-    document.getElementById('deep-cards').innerHTML = dc.map(c => `<div class="insight-card"><span class="badge ${c.badge}">${c.badgeLabel}</span><p>${c.text}</p></div>`).join('');
+    draw();
+  }
 
-    const rowsHtml = di.sectorConcentration.map(s => `
-      <tr><td>${escHtml(s.sector)}</td><td><span class="sector-chip">${escHtml(s.topPartner || '\u2013')}</span></td>
-      <td class="num">${s.topShare.toFixed(0)}%</td><td class="num">${fmtM(s.total)}</td><td class="num">${s.partnerCount}</td></tr>`).join('');
-    document.getElementById('concentration-table').innerHTML = `
-      <table class="data-table"><thead><tr><th>Sector</th><th>Top partner</th><th style="text-align:right">Share</th>
-      <th style="text-align:right">Total assoc. capital</th><th style="text-align:right"># partners</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
+  function renderPipelineOverview(pipelineRows){
+    const PI = computeAll(pipelineRows);
+    const di = PI.deepInsights;
+    const bySectorPi = aggregateBySector(pipelineRows);
+    const totalCap = pipelineRows.reduce((a, r) => a + (r.capitalM || 0), 0);
+    const phase3 = PI.phaseSeries.find(p => p.order === 3);
+    const phase3Share = totalCap && phase3 ? phase3.capital / totalCap * 100 : 0;
 
-    renderBackloadChart('backload-chart', di.backloadRatios.slice(0, 8));
+    // computeAll()'s phaseSeries/sectorByPhase only bucket the three known PHASE_DEFS keys, so a
+    // row with no Phase recorded is silently dropped from both. That's a real share of this data
+    // (see below), so both phase charts here are built fresh with an explicit "Not yet phased"
+    // bucket instead of reusing PI.phaseSeries/PI.sectorByPhase directly.
+    const unphasedRows = pipelineRows.filter(r => !r.phase);
+    const unphasedCapital = unphasedRows.reduce((a, r) => a + (r.capitalM || 0), 0);
+    const unphasedShare = totalCap ? unphasedCapital / totalCap * 100 : 0;
+    const phaseBars = PI.phaseSeries.map(p => ({label: p.label, sub: p.sub, value: p.capital}));
+    if (unphasedRows.length) phaseBars.push({label: 'Not yet phased', sub: unphasedRows.length + ' lines', value: unphasedCapital, color: 'var(--baseline)'});
+    const sbpMap = new Map();
+    pipelineRows.forEach(r => {
+      if (!r.sector) return;
+      if (!sbpMap.has(r.sector)) sbpMap.set(r.sector, {sector: r.sector, phase1: 0, phase2: 0, phase3: 0, unphased: 0, total: 0});
+      const o = sbpMap.get(r.sector);
+      const v = r.capitalM || 0;
+      if (r.phase === PHASE_DEFS[0].key) o.phase1 += v;
+      else if (r.phase === PHASE_DEFS[1].key) o.phase2 += v;
+      else if (r.phase === PHASE_DEFS[2].key) o.phase3 += v;
+      else o.unphased += v;
+      o.total += v;
+    });
+    const sectorByPhaseFull = Array.from(sbpMap.values()).filter(s => s.total > 0).sort((a, b) => b.total - a.total);
 
+    const kpiDefs = [
+      {key: 'capital', v: fmtM(totalCap), l: 'RONAdapt II pipeline (proposed)', dot: 'var(--track-pipeline)',
+        drill: {title: 'RONAdapt II pipeline rows (' + pipelineRows.length + ')', cols: ['Sub-project', 'Activity', 'Sector', 'Capital'],
+          rows: pipelineRows.slice().sort((a, b) => (b.capitalM || 0) - (a.capitalM || 0)).map(r => [r.name, r.program || 'Unspecified', r.sector || 'Unspecified', fmtM(r.capitalM)])}},
+      {key: 'programs', v: PI.byProgram.length + ` <small>(${pipelineRows.length} sub-projects)</small>`, l: 'RONAdapt II priority activities',
+        drill: {title: 'RONAdapt II activities (' + PI.byProgram.length + ')', cols: ['Activity', 'Sector', 'Proposed capital', 'Sub-projects'],
+          rows: PI.byProgram.slice().sort((a, b) => b.capital - a.capital).map(p => [p.program, p.sector, fmtM(p.capital), p.count])}},
+      {key: 'sectors', v: bySectorPi.length + '', l: 'Sectors represented',
+        drill: {title: 'All sectors (' + bySectorPi.length + ')', cols: ['Sector', 'Line items', 'Capital'], rows: bySectorPi.map(s => [s.sector, s.count, fmtM(s.capital)])}},
+      {key: 'partners', v: PI.byPartner.length + '', l: 'Funding partners named',
+        drill: {title: 'Funding partners (' + PI.byPartner.length + ')', cols: ['Partner', 'Lines', 'Capital'], rows: PI.byPartner.slice().sort((a, b) => b.capital - a.capital).map(p => [p.partner, p.mentions, fmtM(p.capital)])}},
+      {key: 'phase3', v: phase3Share.toFixed(0) + '%', l: 'Proposed capital in the long-term horizon'},
+    ];
+    renderTrackKpis('pi-kpi-row', 'pi-kpi-drilldown', kpiDefs);
+
+    const top3 = bySectorPi.slice(0, 3);
+    const totalSectorCap = bySectorPi.reduce((a, s) => a + s.capital, 0);
+    const top3Share = totalSectorCap ? top3.reduce((a, s) => a + s.capital, 0) / totalSectorCap * 100 : 0;
+    const topPartner = PI.byPartner[0];
+    const totalPartnerCap = PI.byPartner.reduce((a, p) => a + p.capital, 0);
+    const top3PartnerShare = totalPartnerCap ? PI.byPartner.slice(0, 3).reduce((a, p) => a + p.capital, 0) / totalPartnerCap * 100 : 0;
+
+    const cards = [];
+    if (top3.length) cards.push({badge: 'concentration', badgeLabel: 'Concentration', text: `<b>${top3.map(s => s.sector).join(', ')}</b> account for <b>${top3Share.toFixed(0)}%</b> of RONAdapt&nbsp;II's proposed capital.`});
+    if (topPartner) cards.push({badge: 'concentration', badgeLabel: 'Funder concentration', text: `<b>${topPartner.partner}</b> is the single largest named partner at <b>${fmtM(topPartner.capital)}</b> across ${topPartner.mentions} lines; the top 3 partners together touch <b>${top3PartnerShare.toFixed(0)}%</b> of associated capital.`});
+    cards.push({badge: 'info', badgeLabel: 'Backloaded', text: `<b>${phase3Share.toFixed(0)}%</b> of RONAdapt&nbsp;II's proposed capital sits in the long-term horizon (Phase 3), a reminder that most of the pipeline is planned, not yet funded.`});
+    cards.push({badge: 'gap', badgeLabel: 'Not yet secured', text: `Explicit contingency makes up <b>${di.contingencyShare.toFixed(1)}%</b> of the pipeline (${fmtM(di.contingencyCapital)}), and almost none of the ${fmtM(totalCap)} proposed is currently &ldquo;Funded&rdquo; rather than &ldquo;Seeking funding.&rdquo;`});
+    if (di.noPartnerCount) cards.push({badge: 'gap', badgeLabel: 'No partner named', text: `<b>${di.noPartnerCount}</b> pipeline lines (${fmtM(di.noPartnerCapital)}) name no funding partner at all.`});
+    if (unphasedRows.length) cards.push({badge: 'gap', badgeLabel: 'Not yet phased', text: `<b>${fmtM(unphasedCapital)}</b> across ${unphasedRows.length} lines (<b>${unphasedShare.toFixed(0)}%</b> of proposed capital) has no near, medium, or long-term phase recorded yet, so it sits in its own bucket on the horizon charts below rather than being folded into one of the three.`});
+    renderCardsInto('pi-insight-cards', cards);
+
+    renderHBar('pi-sector-chart', bySectorPi.map(s => ({label: s.sector, value: s.capital})), {
+      width: 960, leftPad: 200, color: 'var(--track-pipeline)',
+      tip: d => { const s = bySectorPi.find(x => x.sector === d.label); return `<div class="tt-title">${escHtml(s.sector)}</div><div class="tt-row"><span>Capital</span><b>${fmtM(s.capital)}</b></div><div class="tt-row"><span>Line items</span><b>${s.count}</b></div>`; },
+    });
+    renderSimpleSortTable('pi-sector-table', bySectorPi, [
+      {key: 'sector', label: 'Sector'}, {key: 'count', label: 'Line items', num: true}, {key: 'capital', label: 'Capital', num: true, fmt: fmtM},
+    ], 'capital');
+
+    renderHBar('pi-partner-chart', PI.byPartner.slice(0, 12).map(p => ({label: p.partner, value: p.capital})), {
+      width: 900, color: 'var(--track-pipeline)',
+      tip: d => { const p = PI.byPartner.find(x => x.partner === d.label); return `<div class="tt-title">${escHtml(p.partner)}</div><div class="tt-row"><span>Associated capital</span><b>${fmtM(p.capital)}</b></div><div class="tt-row"><span>Lines mentioning</span><b>${p.mentions}</b></div>`; },
+    });
+    renderSimpleSortTable('pi-partner-table', PI.byPartner, [
+      {key: 'partner', label: 'Partner'}, {key: 'mentions', label: 'Lines', num: true}, {key: 'capital', label: 'Capital', num: true, fmt: fmtM},
+    ], 'capital');
+
+    renderVBar('pi-phase-chart', phaseBars, {width: 460, color: 'var(--track-pipeline)'});
+    renderStackedH('pi-sector-phase-chart', sectorByPhaseFull, ['phase1', 'phase2', 'phase3', 'unphased'], ['var(--seq-100)', 'var(--seq-300)', 'var(--seq-700)', 'var(--baseline)'], {labels: ['Near-term', 'Medium-term', 'Long-term', 'Not yet phased']});
+
+    pipelineExpandedProgram = null;
+    renderRonadaptProgramTable(PI.byProgram, program => pipelineRows.filter(r => r.program === program));
+
+    const dup = buildDuplicateInsight(pipelineRows, totalCap);
+    const deepCards = [{badge: 'gap', badgeLabel: 'Ticket size', text: `The median pipeline line item is <b>${money(di.medianTicket)}</b> (mean ${money(di.meanTicket)}); the top 10% of line items by size hold <b>${di.top10pctShare.toFixed(0)}%</b> of all proposed capital.`}, dup.card];
+    const concCard = buildConcentrationCard(di.sectorConcentration, 'proposed');
+    if (concCard) deepCards.push(concCard);
+    renderCardsInto('pi-deep-cards', deepCards);
+    renderConcentrationTable('pi-concentration-table', di.sectorConcentration);
+    renderBackloadChart('pi-backload-chart', di.backloadRatios.slice(0, 8));
+
+    const population = 12000;
     const stats = [
       {v: `$${(di.medianTicket * 1000).toFixed(0)}k`, l: 'Median pipeline line-item size'},
-      {v: `${di.top10pctShare.toFixed(0)}%`, l: 'Of pipeline capital held by the top 10% of line items'},
       {v: `${di.contingencyShare.toFixed(1)}%`, l: 'Of the pipeline is explicit contingency'},
-      {v: `${di.noPartnerCount}`, l: `Pipeline lines naming no partner (${fmtM(di.noPartnerCapital)})`},
+      {v: `${di.noPartnerCount}`, l: `Lines naming no partner (${fmtM(di.noPartnerCapital)})`},
       {v: `${fmtM(di.govSelfCapital)}`, l: `Nauru Govt named as self-financier (${di.govSelfCount} lines)`},
-      {v: `$${Math.round(di.perCapita.combinedTotal * 1e6 / di.perCapita.population).toLocaleString()}`, l: `Per person tracked (pop. ~${di.perCapita.population.toLocaleString()})`},
+      {v: `$${Math.round(totalCap * 1e6 / population).toLocaleString()}`, l: `Per person proposed (pop. ~${population.toLocaleString()})`},
     ];
-    document.getElementById('deep-stats').innerHTML = stats.map(s => `<div class="kpi"><div class="v">${s.v}</div><div class="l">${s.l}</div></div>`).join('');
+    renderStatTiles('pi-deep-stats', stats);
   }
 
-  function renderOverview(){
-    globalSearchEl = document.getElementById('global-search');
-    chipsEl = document.getElementById('filter-chips');
-    filterSector = null; filterPartner = null; expandedProgram = null; activeKpi = null;
-
-    renderKpiRow();
-    renderInsightCards();
-
-    renderSectorButterfly('sector-chart', DATA.bySector, DATA.TRACK_EXISTING, DATA.TRACK_PIPELINE, setSectorFilter);
-
-    renderHBar('partner-chart', DATA.byPartner.slice(0, 12).map(p => ({label: p.partner, value: p.capital})), {
-      width: 520, color: 'var(--track-existing)',
-      onClick: d => setPartnerFilter(d.label),
-      tip: d => {
-        const p = DATA.byPartner.find(x => x.partner === d.label);
-        const ex = p.capitalByTrack[DATA.TRACK_EXISTING] || 0, pi = p.capitalByTrack[DATA.TRACK_PIPELINE] || 0;
-        return `<div class="tt-title">${escHtml(p.partner)}</div><div class="tt-row"><span>Associated capital</span><b>${fmtM(p.capital)}</b></div>
-          <div class="tt-row"><span>Existing track</span><b>${fmtM(ex)}</b></div><div class="tt-row"><span>Pipeline track</span><b>${fmtM(pi)}</b></div>
-          <div class="tt-row"><span>Lines mentioning</span><b>${p.mentions}</b></div>`;
-      },
-    });
-
-    renderHBar('location-chart', DATA.byLocation.slice(0, 9).map(l => ({label: l.location, value: l.capital})), {
-      width: 520, color: 'var(--track-existing)',
-      tip: d => {
-        const l = DATA.byLocation.find(x => x.location === d.label);
-        return `<div class="tt-title">${escHtml(l.location)}</div><div class="tt-row"><span>Capital</span><b>${fmtM(l.capital)}</b></div><div class="tt-row"><span>Projects</span><b>${l.count}</b></div>`;
-      },
-    });
-
-    renderVBar('year-chart', DATA.yearSeries.map(y => ({label: String(y.year), value: y.capital})), {width: 460, color: 'var(--track-existing)'});
-    renderVBar('phase-chart', DATA.phaseSeries.map(p => ({label: p.label, sub: p.sub, value: p.capital})), {width: 460, color: 'var(--track-pipeline)'});
-    renderStackedH('sector-phase-chart', DATA.sectorByPhase, ['phase1', 'phase2', 'phase3'], ['var(--seq-100)', 'var(--seq-300)', 'var(--seq-700)'], {labels: ['Near-term', 'Medium-term', 'Long-term']});
-
-    renderDeepAnalysis();
-    refreshOverviewFilters();
-
-    globalSearchEl.addEventListener('input', () => { expandedProgram = null; refreshOverviewFilters(); });
-  }
 
   // ================= Project Master List tab =================
   function renderProjectsTab(){
@@ -1221,13 +1187,13 @@
             <td>${escHtml(r.id)}</td>
             <td><span class="sector-chip" style="background:${isPipeline ? 'var(--track-pipeline-soft)' : 'var(--track-existing-soft)'}">${isPipeline ? 'Pipeline' : 'Existing'}</span></td>
             <td>${escHtml(r.name)}${r.program ? `<div style="color:var(--text-muted);font-size:10.5px;margin-top:2px;">${escHtml(r.program)}</div>` : ''}</td>
-            <td>${escHtml(r.sector || '\u2013')}</td>
-            <td>${escHtml(r.location || '\u2013')}</td>
+            <td>${escHtml(r.sector || 'Unspecified')}</td>
+            <td>${escHtml(r.location || 'Unspecified')}</td>
             <td class="num">${fmtM(r.capitalM)}</td>
-            <td>${escHtml(r.yearLabel || '\u2013')}</td>
-            <td>${escHtml((r.phase || '\u2013').replace(/\s*\(.*\)/, ''))}</td>
-            <td>${escHtml(r.status || '\u2013')}</td>
-            <td>${escHtml(r.fundingOutcome || '\u2013')}</td>
+            <td>${escHtml(r.yearLabel || 'Unspecified')}</td>
+            <td>${escHtml((r.phase || 'Unspecified').replace(/\s*\(.*\)/, ''))}</td>
+            <td>${escHtml(r.status || 'Unspecified')}</td>
+            <td>${escHtml(r.fundingOutcome || 'Unspecified')}</td>
           </tr>`;
         });
       }
@@ -1243,7 +1209,7 @@
     function tlRow(labelHtml, subText, items, chipClass){
       const maxCap = Math.max(0.01, ...items.map(r => r.capitalM || 0));
       return `<div class="tl-row"><div class="tl-label">${labelHtml}<div class="tl-sub">${subText}</div></div>
-        <div class="tl-track">${items.slice(0, 80).map(r => `<span class="tl-chip ${chipClass}" style="width:${Math.max((r.capitalM || 0) / maxCap * 90, 5)}px" title="${escAttr(r.name + ' \u2014 ' + fmtM(r.capitalM))}"></span>`).join('') || '<span style="font-size:11px;color:var(--text-muted);">No line items</span>'}</div></div>`;
+        <div class="tl-track">${items.slice(0, 80).map(r => `<span class="tl-chip ${chipClass}" style="width:${Math.max((r.capitalM || 0) / maxCap * 90, 5)}px" title="${escAttr(r.name + ', ' + fmtM(r.capitalM))}"></span>`).join('') || '<span style="font-size:11px;color:var(--text-muted);">No line items</span>'}</div></div>`;
     }
     function renderTimeline(){
       const rows = filteredRows();
@@ -1285,10 +1251,10 @@
   // ================= Sectors tab =================
   function renderSectorsTab(){
     const buckets = {
-      important: {label: 'Important \u2014 concentration risk worth watching', caption: 'Rule: sits in the top half of sectors by combined capital, AND spans 2+ recorded hazard groups, AND names 2+ distinct funding partners. High capital riding on multiple problems and multiple funders at once.', badge: 'concentration', items: []},
-      gap: {label: 'Gap / neglected \u2014 proposed, not yet resourced', caption: 'Rule: existing/committed capital is exactly zero, but the RONAdapt\u00a0II pipeline proposes capital for it. A genuine ask with no track record yet.', badge: 'gap', items: []},
-      'self-sustaining': {label: 'Self-sustaining \u2014 already resourced, no pipeline ask', caption: 'Rule: has existing/committed capital, but zero RONAdapt\u00a0II pipeline ask. May not need further donor attention right now.', badge: 'emerging', items: []},
-      mixed: {label: 'Steady / mixed', caption: 'Rule: everything that doesn\u2019t cleanly satisfy one of the three rules above \u2014 has both existing and pipeline capital, but isn\u2019t large/diverse enough to flag as a concentration risk.', badge: 'info', items: []},
+      important: {label: 'Important, concentration risk worth watching', caption: 'Rule: sits in the top half of sectors by combined capital, AND spans 2+ recorded hazard groups, AND names 2+ distinct funding partners. High capital riding on multiple problems and multiple funders at once.', badge: 'concentration', items: []},
+      gap: {label: 'Gap / neglected, proposed, not yet resourced', caption: 'Rule: existing/committed capital is exactly zero, but the RONAdapt\u00a0II pipeline proposes capital for it. A genuine ask with no track record yet.', badge: 'gap', items: []},
+      'self-sustaining': {label: 'Self-sustaining, already resourced, no pipeline ask', caption: 'Rule: has existing/committed capital, but zero RONAdapt\u00a0II pipeline ask. May not need further donor attention right now.', badge: 'emerging', items: []},
+      mixed: {label: 'Steady / mixed', caption: 'Rule: everything that doesn\u2019t cleanly satisfy one of the three rules above, has both existing and pipeline capital, but isn\u2019t large/diverse enough to flag as a concentration risk.', badge: 'info', items: []},
     };
     const categorized = computeSectorBuckets(DATA.bySector, DATA.TRACK_EXISTING, DATA.TRACK_PIPELINE);
     categorized.forEach(s => { if (buckets[s.bucket]) buckets[s.bucket].items.push(s); });
@@ -1324,12 +1290,12 @@
         <div class="bucket-group-head"><span class="badge ${badge}">${rows.length}</span><p class="panel-title" style="font-size:13px;margin:0;">${escHtml(title)}</p></div>
         <table class="data-table"><thead><tr><th>Project</th><th>Track</th><th style="text-align:right">Capital</th><th>Duplicate of</th><th>Notes</th></tr></thead>
         <tbody>${rows.map(r => `<tr><td>${escHtml(r.name)}</td><td>${r.track === DATA.TRACK_PIPELINE ? 'Pipeline' : 'Existing'}</td>
-          <td class="num">${fmtM(r.capitalM)}</td><td>${escHtml(r.duplicateOf || '\u2013')}</td>
-          <td style="max-width:320px;">${escHtml(r.notes || '\u2013')}</td></tr>`).join('')}</tbody></table>
+          <td class="num">${fmtM(r.capitalM)}</td><td>${escHtml(r.duplicateOf || 'Unspecified')}</td>
+          <td style="max-width:320px;">${escHtml(r.notes || 'Unspecified')}</td></tr>`).join('')}</tbody></table>
       </div>`;
     }
-    const html = group('Confirmed overlap \u2014 excluded from adjusted totals', dup.confirmedRows, 'gap') +
-      group('Possible overlap \u2014 review', dup.possibleRows, 'concentration');
+    const html = group('Confirmed overlap, excluded from adjusted totals', dup.confirmedRows, 'gap') +
+      group('Possible overlap, review', dup.possibleRows, 'concentration');
     document.getElementById('dup-groups').innerHTML = html || '<div class="empty-state">No rows are currently flagged with a Duplicate Status.</div>';
   }
 
@@ -1431,7 +1397,7 @@
     return [
       {
         test: q => /^(hi|hello|hey)\b/.test(q) || /help|what can (you|i) (ask|do)|how does this work/.test(q),
-        answer: () => `I can answer questions about the numbers already on this page &mdash; sector totals, funding partners, pipeline stats, hazard groups, duplicates, methodology. Try things like:<ul>
+        answer: () => `I can answer questions about the numbers already on this page, sector totals, funding partners, pipeline stats, hazard groups, duplicates, methodology. Try things like:<ul>
           <li>"How much is committed to Water &amp; Sanitation?"</li>
           <li>"Who is the largest funding partner?"</li>
           <li>"What's the median pipeline line-item size?"</li>
@@ -1441,13 +1407,13 @@
       },
       {
         test: q => /(largest|biggest|top|main|number one)\D*(fund(er|ing)?( partner)?|donor|financier)/.test(q),
-        answer: () => `<b>${ins.topPartner.name}</b> is the single largest named funding partner, associated with <b>${fmtM(ins.topPartner.capital)}</b> across ${ins.topPartner.mentions} line items. The top 3 partners together touch <b>${ins.top3PartnerShare.toFixed(0)}%</b> of associated capital &mdash; note partners sharing a line are each credited the full line, so this is a reach measure, not an exclusive split.`,
+        answer: () => `<b>${ins.topPartner.name}</b> is the single largest named funding partner, associated with <b>${fmtM(ins.topPartner.capital)}</b> across ${ins.topPartner.mentions} line items. The top 3 partners together touch <b>${ins.top3PartnerShare.toFixed(0)}%</b> of associated capital, note partners sharing a line are each credited the full line, so this is a reach measure, not an exclusive split.`,
       },
       {
         test: q => /(committ|invest|spend|spent|\bfund|capital|allocat|going (in)?to|how much)/.test(q) && !!findSector(q),
         answer: q => {
           const s = findSector(q), TE = DATA.TRACK_EXISTING, TP = DATA.TRACK_PIPELINE;
-          return `<b>${s.sector}</b>: <b>${fmtM(s[TE].capital)}</b> existing/committed (${s[TE].count} line items) and <b>${fmtM(s[TP].capital)}</b> proposed in the RONAdapt&nbsp;II pipeline (${s[TP].count} line items) &mdash; <b>${fmtM(s.totalCapital)}</b> combined.`;
+          return `<b>${s.sector}</b>: <b>${fmtM(s[TE].capital)}</b> existing/committed (${s[TE].count} line items) and <b>${fmtM(s[TP].capital)}</b> proposed in the RONAdapt&nbsp;II pipeline (${s[TP].count} line items), <b>${fmtM(s.totalCapital)}</b> combined.`;
         },
       },
       {
@@ -1460,7 +1426,7 @@
       },
       {
         test: q => /median.*(pipeline|line.?item|ticket|sub.?project)|(pipeline|line.?item|ticket|sub.?project).*median/.test(q),
-        answer: () => `The median RONAdapt&nbsp;II pipeline line-item is <b>${money(di.medianTicket)}</b> (the mean is ${money(di.meanTicket)} &mdash; well above the median, because a small number of large line items pull it up).`,
+        answer: () => `The median RONAdapt&nbsp;II pipeline line-item is <b>${money(di.medianTicket)}</b> (the mean is ${money(di.meanTicket)}, well above the median, because a small number of large line items pull it up).`,
       },
       {
         test: q => /(mean|average).*(pipeline|line.?item|ticket|sub.?project)/.test(q),
@@ -1513,7 +1479,7 @@
           let s = '';
           if (dup.confirmedRows.length){
             const names = dup.confirmedRows.map(r => `&ldquo;${r.name}&rdquo; (${fmtM(r.capitalM)})`).join(', ');
-            s += `Yes &mdash; ${names} ${dup.confirmedRows.length === 1 ? 'is' : 'are'} flagged as a confirmed overlap${dup.confirmedRows.length === 1 ? '' : 's'} and excluded from the adjusted total. `;
+            s += `Yes, ${names} ${dup.confirmedRows.length === 1 ? 'is' : 'are'} flagged as a confirmed overlap${dup.confirmedRows.length === 1 ? '' : 's'} and excluded from the adjusted total. `;
           }
           if (dup.possibleRows.length) s += `${dup.possibleRows.length} more row(s) totalling ${fmtM(dup.reviewCapital)} are flagged as a possible overlap for review, but are not excluded. `;
           s += `Adjusted combined total: <b>${fmtM(di.adjustedCombinedTotal)}</b> (raw ${fmtM(k.existingCapital + k.pipelineCapital)}). See the Duplicates tab for the full list.`;
@@ -1585,7 +1551,7 @@
       },
       {
         test: q => /source|methodolog|where.*(data|numbers|figures).*(from|come)/.test(q),
-        answer: () => `Built from two tabs of <i>Nauru Project Master List.xlsx</i>: the &ldquo;Project Master List&rdquo; (existing/committed projects, 2017&ndash;2026) and the &ldquo;RONADAPT Project List&rdquo; (RONAdapt&nbsp;II's priority activities broken into costed, phased sub-projects), published to a Google Sheet and read live as CSV. See README.md and the page footer for full methodology notes.`,
+        answer: () => `Built from two tabs of <i>Nauru Project Master List.xlsx</i>: the &ldquo;Project Master List&rdquo; (existing/committed projects, 2017 to 2026) and the &ldquo;RONADAPT Project List&rdquo; (RONAdapt&nbsp;II's priority activities broken into costed, phased sub-projects), published to a Google Sheet and read live as CSV. See README.md and the page footer for full methodology notes.`,
       },
     ];
   }
@@ -1637,7 +1603,7 @@
       chatFab.setAttribute('aria-expanded', 'true');
       if (!chatStarted){
         chatStarted = true;
-        addChatMsg('bot', `Hi &mdash; ask me about the figures on this dashboard: sector totals, funding partners, pipeline stats, hazards, duplicates, or methodology. I only answer from what's currently loaded on this page.`);
+        addChatMsg('bot', `Hi, ask me about the figures on this dashboard: sector totals, funding partners, pipeline stats, hazards, duplicates, or methodology. I only answer from what's currently loaded on this page.`);
         addChatSuggestions();
       }
       chatInput.focus();
@@ -1654,9 +1620,9 @@
       if (answer){
         addChatMsg('bot', answer);
       } else if (!DATA){
-        addChatMsg('bot', `Data is still loading &mdash; try again in a moment.`);
+        addChatMsg('bot', `Data is still loading, try again in a moment.`);
       } else {
-        addChatMsg('bot', `I don't have an answer for that from this dashboard's data. I can only answer questions about what's shown here &mdash; sector and partner totals, pipeline stats, phasing, hazards, and methodology. Try one of these:`);
+        addChatMsg('bot', `I don't have an answer for that from this dashboard's data. I can only answer questions about what's shown here, sector and partner totals, pipeline stats, phasing, hazards, and methodology. Try one of these:`);
         addChatSuggestions();
       }
     }
@@ -1677,7 +1643,15 @@
       ROWS = objs.map(normalizeRow).filter(r => r.track);
       DATA = computeAll(ROWS);
       showBannerLoaded(source, ROWS.length);
-      renderOverview();
+
+      document.getElementById('m-total').textContent = fmtM(DATA.kpis.existingCapital + DATA.kpis.pipelineCapital);
+      document.getElementById('m-projects').textContent = (DATA.kpis.existingCount + DATA.kpis.pipelinePrograms) + '';
+      document.getElementById('m-partners').textContent = DATA.kpis.partnersCount + '';
+
+      const existingRows = ROWS.filter(r => r.track === DATA.TRACK_EXISTING);
+      const pipelineRows = ROWS.filter(r => r.track === DATA.TRACK_PIPELINE);
+      renderExistingOverview(existingRows);
+      renderPipelineOverview(pipelineRows);
       renderFlowsTab();
       renderProjectsTab();
       renderSectorsTab();
