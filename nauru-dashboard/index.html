@@ -498,24 +498,6 @@
       </div>
     </section>
 
-    <section class="panel" id="ex-deep-panel">
-      <div class="panel-head">
-        <div>
-          <p class="panel-title">Deeper analysis: how solid is this, really?</p>
-          <p class="panel-desc">Cuts that change how the headline numbers above should be read, not just what they add up to.</p>
-        </div>
-      </div>
-      <div class="grid-3" id="ex-deep-cards" style="margin-bottom:18px;"></div>
-
-      <div>
-        <p class="panel-title" style="font-size:13px;">Funder concentration by sector</p>
-        <p class="panel-desc" style="margin-bottom:10px;">The single largest named partner's share of each sector's associated capital, rows with no named partner excluded from the denominator. A high share means that sector leans on one institution's continued appetite.</p>
-        <div id="ex-concentration-table"></div>
-      </div>
-
-      <div class="grid-3" id="ex-deep-stats" style="margin-top:16px;"></div>
-    </section>
-
   </section>
 
   <!-- ============================= RONADAPT II PRIORITIES TAB (pipeline only) ============================= -->
@@ -594,31 +576,6 @@
         </div>
       </div>
       <div id="pi-program-table"></div>
-    </section>
-
-    <section class="panel" id="pi-deep-panel">
-      <div class="panel-head">
-        <div>
-          <p class="panel-title">Deeper analysis: how solid is this, really?</p>
-          <p class="panel-desc">Cuts that change how the headline numbers above should be read, not just what they add up to.</p>
-        </div>
-      </div>
-      <div class="grid-3" id="pi-deep-cards" style="margin-bottom:18px;"></div>
-
-      <div class="grid-2">
-        <div>
-          <p class="panel-title" style="font-size:13px;">Funder concentration by sector</p>
-          <p class="panel-desc" style="margin-bottom:10px;">The single largest named partner's share of each sector's associated proposed capital, rows with no named partner excluded from the denominator.</p>
-          <div id="pi-concentration-table"></div>
-        </div>
-        <div>
-          <p class="panel-title" style="font-size:13px;">Back-loading: Phase 3 vs. Phase 1</p>
-          <p class="panel-desc" style="margin-bottom:10px;">RONAdapt&nbsp;II activities ranked by how much larger their long-term ask is than their near-term ask.</p>
-          <div id="pi-backload-chart"></div>
-        </div>
-      </div>
-
-      <div class="grid-3" id="pi-deep-stats" style="margin-top:16px;"></div>
     </section>
 
   </section>
@@ -735,7 +692,7 @@
 
   <footer>
     <p><strong>Sources.</strong> "Project Master List" (existing/committed multi-donor investment, 2017 to 2026) and "RONADAPT Project List" (RONAdapt&nbsp;II's priority activities broken into their costed, phased sub-projects) tabs of <em>Nauru Project Master List.xlsx</em>, the latter transcribed from <em>RONAdapt&nbsp;II</em> (Government of the Republic of Nauru, 2025), published to a Google Sheet and read live from <code>data/projects.csv</code> or the configured sheet link, see <code>README.md</code>.</p>
-    <p><strong>Methodology notes.</strong> Every figure on this page, including this footer's own project counts, is computed in the browser from the currently loaded rows, nothing is pre-baked. The Master List Overview and RONAdapt&nbsp;II Priorities tabs each analyse one track only, existing/committed capital and the RONAdapt&nbsp;II pipeline are not combined or compared on those tabs. "Who is funding it" on each is a mention-based reach measure: a project naming three partners credits its full capital to each of the three, so partner totals overlap and do not sum to that tab's total. Rows flagged with a Duplicate Status of "Confirmed overlap" are excluded from that track's adjusted total in its deep-analysis panel; rows flagged "Possible overlap" are shown everywhere but not excluded from any total. The Money Flow and Gaps, Sectors, Duplicates, and Hazards tabs continue to combine both tracks.</p>
+    <p><strong>Methodology notes.</strong> Every figure on this page, including this footer's own project counts, is computed in the browser from the currently loaded rows, nothing is pre-baked. The Master List Overview and RONAdapt&nbsp;II Priorities tabs each analyse one track only, existing/committed capital and the RONAdapt&nbsp;II pipeline are not combined or compared on those tabs. "Who is funding it" on each is a mention-based reach measure: a project naming three partners credits its full capital to each of the three, so partner totals overlap and do not sum to that tab's total. Rows flagged with a Duplicate Status are not excluded from any total on the Master List Overview or RONAdapt&nbsp;II Priorities tabs, they stay in every figure there. The Duplicates tab surfaces them separately and computes its own adjusted combined total across both tracks, excluding rows flagged "Confirmed overlap" only. The Money Flow and Gaps, Sectors, Duplicates, and Hazards tabs continue to combine both tracks.</p>
   </footer>
 
 </div>
