@@ -17,4 +17,4 @@
 // Leave this empty ("") to fall back to the bundled data/projects.csv file (and, if
 // that can't be fetched either, e.g. opening this folder directly from disk instead
 // of a web server, the embedded snapshot in data/fallback-data.js).
-window.NAURU_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTEITMYNMVQ9BuEcDIqVlsQqdm2W6Cfo1wXOJprg_eFz8XdR2Im5WxuCRAImqTczJl5sRWHBCxupWiL/pub?gid=150944921&single=true&output=csv";
+window.NAURU_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhcO3Mx-U2jCCfiBkimWhBX3s3uVNCzIp5KHD8gDzNmqw9-X1Dj7OsAy0whOoVAhArfAVys6RnrBmc/pub?gid=1986121950&single=true&output=csv";
