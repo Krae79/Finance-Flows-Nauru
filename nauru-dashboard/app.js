@@ -561,36 +561,6 @@
     container.appendChild(svg);
   }
 
-  function renderBackloadChart(containerId, items){
-    const container = document.getElementById(containerId);
-    if (!items.length){ container.innerHTML = '<div class="empty-state">No data</div>'; return; }
-    const rowH = 26, gap = 10, leftPad = 210, rightPad = 46, topPad = 8;
-    const width = 620, plotW = width - leftPad - rightPad;
-    const height = topPad * 2 + items.length * (rowH + gap);
-    const maxVal = Math.max(1, ...items.map(d => Math.max(d.phase1, d.phase3)));
-    const svg = svgEl('svg', {viewBox: `0 0 ${width} ${height}`, class: 'chart-svg'});
-    items.forEach((d, i) => {
-      const y = topPad + i * (rowH + gap);
-      const label = svgEl('text', {x: leftPad - 10, y: y + rowH / 2 + 4, class: 'row-label', 'text-anchor': 'end'});
-      label.textContent = d.program.length > 30 ? d.program.slice(0, 28) + '\u2026' : d.program;
-      svg.appendChild(label);
-      const w1 = (d.phase1 / maxVal) * plotW, w3 = (d.phase3 / maxVal) * plotW;
-      const bh = (rowH - 4) / 2;
-      const b1 = svgEl('rect', {x: leftPad, y, width: Math.max(w1, 2), height: bh, rx: 3, fill: 'var(--seq-100)', class: 'bar'});
-      b1.addEventListener('mousemove', e => { showTip(e, `<div class="tt-title">${escHtml(d.program)}</div><div class="tt-row"><span>Phase 1 (near-term)</span><b>${fmtM(d.phase1)}</b></div>`); moveTip(e); });
-      b1.addEventListener('mouseleave', hideTip);
-      svg.appendChild(b1);
-      const b3 = svgEl('rect', {x: leftPad, y: y + bh + 4, width: Math.max(w3, 2), height: bh, rx: 3, fill: 'var(--seq-700)', class: 'bar'});
-      b3.addEventListener('mousemove', e => { showTip(e, `<div class="tt-title">${escHtml(d.program)}</div><div class="tt-row"><span>Phase 3 (long-term)</span><b>${fmtM(d.phase3)}</b></div><div class="tt-row"><span>Ratio</span><b>${isFinite(d.ratio) ? d.ratio.toFixed(1) + '\u00d7' : 'N/A'}</b></div>`); moveTip(e); });
-      b3.addEventListener('mouseleave', hideTip);
-      svg.appendChild(b3);
-      const rt = svgEl('text', {x: leftPad + Math.max(w1, w3) + 8, y: y + rowH / 2 + 4, class: 'val-label'});
-      rt.textContent = isFinite(d.ratio) ? d.ratio.toFixed(1) + '\u00d7' : 'N/A'; svg.appendChild(rt);
-    });
-    container.innerHTML = '';
-    container.appendChild(svg);
-  }
-
   function ribbonPath(x0, y0top, y0bot, x1, y1top, y1bot){
     const mx = (x0 + x1) / 2;
     return `M${x0},${y0top} C${mx},${y0top} ${mx},${y1top} ${x1},${y1top} L${x1},${y1bot} C${mx},${y1bot} ${mx},${y0bot} ${x0},${y0bot} Z`;
@@ -788,20 +758,6 @@
     document.getElementById(elId).innerHTML = cards.map(c => `<div class="insight-card"><span class="badge ${c.badge}">${c.badgeLabel}</span><p>${c.text}</p></div>`).join('');
   }
 
-  function renderStatTiles(elId, stats){
-    document.getElementById(elId).innerHTML = stats.map(s => `<div class="kpi"><div class="v">${s.v}</div><div class="l">${s.l}</div></div>`).join('');
-  }
-
-  function renderConcentrationTable(elId, sectorConcentration){
-    const el = document.getElementById(elId);
-    if (!sectorConcentration.length){ el.innerHTML = '<div class="empty-state">No partner data to rank.</div>'; return; }
-    const rowsHtml = sectorConcentration.map(s => `
-      <tr><td>${escHtml(s.sector)}</td><td><span class="sector-chip">${escHtml(s.topPartner || 'Unspecified')}</span></td>
-      <td class="num">${s.topShare.toFixed(0)}%</td><td class="num">${fmtM(s.total)}</td><td class="num">${s.partnerCount}</td></tr>`).join('');
-    el.innerHTML = `<table class="data-table"><thead><tr><th>Sector</th><th>Top partner</th><th style="text-align:right">Share</th>
-      <th style="text-align:right">Total assoc. capital</th><th style="text-align:right"># partners</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
-  }
-
   // Simple sortable display table (sector or partner), no cross-chart filtering: each track tab
   // is self-contained, so there is no shared activities table beneath it to filter.
   function renderSimpleSortTable(elId, items, cols, defaultKey){
@@ -864,24 +820,6 @@
 
   // Duplicate-flag insight card, scoped to a single track's own rows (each row is flagged
   // individually in the source data, so this is a straight filter, not a cross-track computation).
-  function buildDuplicateInsight(rows, totalCap){
-    const confirmed = rows.filter(r => /confirmed overlap/i.test(r.duplicateStatus));
-    const possible = rows.filter(r => /possible overlap/i.test(r.duplicateStatus));
-    const excluded = confirmed.reduce((a, r) => a + (r.capitalM || 0), 0);
-    const adjustedTotal = totalCap - excluded;
-    let card;
-    if (confirmed.length || possible.length){
-      let s = '';
-      if (confirmed.length) s += `<b>${confirmed.length}</b> row${confirmed.length === 1 ? '' : 's'} totalling <b>${fmtM(excluded)}</b> ${confirmed.length === 1 ? 'is' : 'are'} flagged as a confirmed overlap and excluded from this track's adjusted total (see the Duplicates tab).`;
-      if (possible.length) s += ` A further <b>${possible.length}</b> row${possible.length === 1 ? '' : 's'} ${possible.length === 1 ? 'is' : 'are'} flagged for review but not excluded.`;
-      s += ` Adjusted total: <b>${fmtM(adjustedTotal)}</b> versus raw ${fmtM(totalCap)}.`;
-      card = {badge: 'gap', badgeLabel: 'Possible double-counting', text: s};
-    } else {
-      card = {badge: 'info', badgeLabel: 'No flagged overlaps', text: `No rows in this track are currently flagged with a Duplicate Status, so the adjusted and raw totals match: <b>${fmtM(adjustedTotal)}</b>.`};
-    }
-    return {card, adjustedTotal, confirmed, possible, excluded};
-  }
-
   function buildConcentrationCard(sectorConcentration, possessive){
     if (!sectorConcentration.length) return null;
     const t0 = sectorConcentration[0], t1 = sectorConcentration[1];
@@ -957,23 +895,6 @@
       tip: d => { const s = EX.byStatus.find(x => x.status === d.label); return `<div class="tt-title">${escHtml(s.status)}</div><div class="tt-row"><span>Capital</span><b>${fmtM(s.capital)}</b></div><div class="tt-row"><span>Lines</span><b>${s.count}</b></div>`; },
     });
 
-    const dup = buildDuplicateInsight(existingRows, totalCap);
-    const deepCards = [{badge: 'gap', badgeLabel: 'Aspirational, not committed', text: `<b>${di.unrealizedShare.toFixed(0)}%</b> of committed capital (${fmtM(di.unrealizedCap)}) is not yet Completed, Funded, Ongoing, Near completion, or Under implementation.`}, dup.card];
-    const concCard2 = buildConcentrationCard(di.sectorConcentration, 'tracked');
-    if (concCard2) deepCards.push(concCard2);
-    renderCardsInto('ex-deep-cards', deepCards);
-    renderConcentrationTable('ex-concentration-table', di.sectorConcentration);
-
-    const population = 12000;
-    const medianCaps = existingRows.filter(r => r.capitalM != null).map(r => r.capitalM).sort((a, b) => a - b);
-    const stats = [
-      {v: fmtM(median(medianCaps)), l: 'Median committed project size'},
-      {v: `${di.noPartnerCount}`, l: `Lines naming no partner (${fmtM(di.noPartnerCapital)})`},
-      {v: `${fmtM(di.govSelfCapital)}`, l: `Nauru Govt named as self-financier (${di.govSelfCount} lines)`},
-      {v: `$${Math.round(totalCap * 1e6 / population).toLocaleString()}`, l: `Per person tracked (pop. ~${population.toLocaleString()})`},
-      {v: fmtM(dup.adjustedTotal), l: 'Adjusted total, after excluding confirmed overlaps'},
-    ];
-    renderStatTiles('ex-deep-stats', stats);
   }
 
   // ---- RONAdapt II Priorities tab (pipeline rows only) ----
@@ -1111,23 +1032,6 @@
     pipelineExpandedProgram = null;
     renderRonadaptProgramTable(PI.byProgram, program => pipelineRows.filter(r => r.program === program));
 
-    const dup = buildDuplicateInsight(pipelineRows, totalCap);
-    const deepCards = [{badge: 'gap', badgeLabel: 'Ticket size', text: `The median pipeline line item is <b>${money(di.medianTicket)}</b> (mean ${money(di.meanTicket)}); the top 10% of line items by size hold <b>${di.top10pctShare.toFixed(0)}%</b> of all proposed capital.`}, dup.card];
-    const concCard = buildConcentrationCard(di.sectorConcentration, 'proposed');
-    if (concCard) deepCards.push(concCard);
-    renderCardsInto('pi-deep-cards', deepCards);
-    renderConcentrationTable('pi-concentration-table', di.sectorConcentration);
-    renderBackloadChart('pi-backload-chart', di.backloadRatios.slice(0, 8));
-
-    const population = 12000;
-    const stats = [
-      {v: `$${(di.medianTicket * 1000).toFixed(0)}k`, l: 'Median pipeline line-item size'},
-      {v: `${di.contingencyShare.toFixed(1)}%`, l: 'Of the pipeline is explicit contingency'},
-      {v: `${di.noPartnerCount}`, l: `Lines naming no partner (${fmtM(di.noPartnerCapital)})`},
-      {v: `${fmtM(di.govSelfCapital)}`, l: `Nauru Govt named as self-financier (${di.govSelfCount} lines)`},
-      {v: `$${Math.round(totalCap * 1e6 / population).toLocaleString()}`, l: `Per person proposed (pop. ~${population.toLocaleString()})`},
-    ];
-    renderStatTiles('pi-deep-stats', stats);
   }
 
 
