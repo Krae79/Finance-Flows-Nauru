@@ -402,9 +402,9 @@
         <p class="hero-sub">Where the money has gone, where RONAdapt&nbsp;II proposes it goes next, who is funding it, and where the gaps sit.</p>
       </div>
       <div class="hero-meta">
-        <div><div class="n" id="m-total">&ndash;</div><div class="l">Tracked capital</div></div>
-        <div><div class="n" id="m-projects">&ndash;</div><div class="l">Projects &amp; activities</div></div>
-        <div><div class="n" id="m-partners">&ndash;</div><div class="l">Funding partners</div></div>
+        <div><div class="n" id="m-total">N/A</div><div class="l">Tracked capital</div></div>
+        <div><div class="n" id="m-projects">N/A</div><div class="l">Projects &amp; activities</div></div>
+        <div><div class="n" id="m-partners">N/A</div><div class="l">Funding partners</div></div>
       </div>
     </div>
   </header>
@@ -416,7 +416,8 @@
   </div>
 
   <nav class="tabbar" id="tabbar">
-    <button class="tab-btn" data-tab="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Overview</button>
+    <button class="tab-btn" data-tab="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Master List Overview</button>
+    <button class="tab-btn" data-tab="ronadapt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M9 11l3 3L22 4"/></svg>RONAdapt&nbsp;II Priorities</button>
     <button class="tab-btn" data-tab="flows"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v7a4 4 0 0 0 4 4h12"/><path d="M16 12l4 3-4 3"/></svg>Money Flow and Gaps</button>
     <button class="tab-btn" data-tab="projects"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Project Master List</button>
     <button class="tab-btn" data-tab="sectors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>Sectors</button>
@@ -424,43 +425,34 @@
     <button class="tab-btn" data-tab="hazards"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Hazards &amp; Funding Outcomes</button>
   </nav>
 
-  <!-- ============================= OVERVIEW TAB ============================= -->
+  <!-- ============================= MASTER LIST OVERVIEW TAB (existing / committed only) ============================= -->
   <section class="tab-page" id="tab-overview">
 
-    <div class="toolbar">
-      <div class="search-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input class="search-input" id="global-search" type="text" placeholder="Search projects, sectors, or partners&hellip;">
-      </div>
-      <div class="chips" id="filter-chips"></div>
-    </div>
+    <section class="kpis" id="ex-kpi-row"></section>
+    <div id="ex-kpi-drilldown"></div>
 
-    <section class="kpis" id="kpi-row"></section>
-    <div id="kpi-drilldown"></div>
-
-    <section class="panel" id="insight-panel">
+    <section class="panel" id="ex-insight-panel">
       <div class="panel-head">
         <div>
-          <p class="panel-title">Where this is heading: opportunities &amp; gaps</p>
-          <p class="panel-desc">Computed directly from the sector totals below, not editorial commentary.</p>
+          <p class="panel-title">Where the committed capital sits</p>
+          <p class="panel-desc">Computed directly from the sector and partner totals below, not editorial commentary.</p>
         </div>
       </div>
-      <div class="grid-3" id="insight-cards"></div>
+      <div class="grid-3" id="ex-insight-cards"></div>
     </section>
 
     <section class="panel">
       <div class="panel-head">
         <div>
-          <p class="panel-title">Investment by sector, existing vs. proposed pipeline</p>
-          <p class="panel-desc">Committed/ongoing capital (left) against RONAdapt&nbsp;II's proposed capital (right). Click a sector (bar or table row) to filter the activities table below; click a table header to sort.</p>
+          <p class="panel-title">Investment by sector</p>
+          <p class="panel-desc">Existing and committed capital by sector, ranked highest to lowest.</p>
         </div>
         <div class="legend">
           <span class="legend-item"><span class="legend-swatch" style="background:var(--track-existing)"></span>Existing / committed</span>
-          <span class="legend-item"><span class="legend-swatch" style="background:var(--track-pipeline)"></span>RONAdapt&nbsp;II pipeline (proposed)</span>
         </div>
       </div>
-      <div id="sector-chart"></div>
-      <div class="subtable-wrap" id="sector-table"></div>
+      <div id="ex-sector-chart"></div>
+      <div class="subtable-wrap" id="ex-sector-table"></div>
     </section>
 
     <section class="grid-2">
@@ -468,20 +460,20 @@
         <div class="panel-head">
           <div>
             <p class="panel-title">Who is funding it</p>
-            <p class="panel-desc">Capital associated with each named partner across every project/sub-project that lists them (partners sharing a line are each credited the full line, a reach measure, not an exclusive split). Click a partner to filter the activities table; click a table header to sort.</p>
+            <p class="panel-desc">Capital associated with each named partner across every project that lists them, partners sharing a project are each credited the full amount, a reach measure, not an exclusive split.</p>
           </div>
         </div>
-        <div id="partner-chart"></div>
-        <div class="subtable-wrap" id="partner-table"></div>
+        <div id="ex-partner-chart"></div>
+        <div class="subtable-wrap" id="ex-partner-table"></div>
       </div>
       <div class="panel">
         <div class="panel-head">
           <div>
             <p class="panel-title">Where, geographically</p>
-            <p class="panel-desc">Existing/committed projects by location (RONAdapt&nbsp;II sub-projects are costed at the national level, not by site).</p>
+            <p class="panel-desc">Existing and committed capital by location.</p>
           </div>
         </div>
-        <div id="location-chart"></div>
+        <div id="ex-location-chart"></div>
       </div>
     </section>
 
@@ -489,77 +481,145 @@
       <div class="panel">
         <div class="panel-head">
           <div>
-            <p class="panel-title">When, existing spend by year</p>
-            <p class="panel-desc">Committed/ongoing capital, by recorded start year.</p>
+            <p class="panel-title">When, by start year</p>
+            <p class="panel-desc">Committed capital by recorded start year.</p>
           </div>
         </div>
-        <div id="year-chart"></div>
+        <div id="ex-year-chart"></div>
       </div>
       <div class="panel">
         <div class="panel-head">
           <div>
-            <p class="panel-title">When, pipeline by horizon</p>
-            <p class="panel-desc">RONAdapt&nbsp;II's priority activities each phase their costing near / medium / long-term; grouped here by phase order.</p>
+            <p class="panel-title">By project status</p>
+            <p class="panel-desc">Committed capital by current project status.</p>
           </div>
         </div>
-        <div id="phase-chart"></div>
+        <div id="ex-status-chart"></div>
       </div>
     </section>
 
-    <section class="panel">
-      <div class="panel-head">
-        <div>
-          <p class="panel-title">RONAdapt&nbsp;II pipeline by sector &amp; horizon</p>
-          <p class="panel-desc">Which sectors are front-loaded into the near-term vs. deferred to the long-term.</p>
-        </div>
-        <div class="legend">
-          <span class="legend-item"><span class="legend-swatch" style="background:var(--seq-100)"></span>Near-term</span>
-          <span class="legend-item"><span class="legend-swatch" style="background:var(--seq-300)"></span>Medium-term</span>
-          <span class="legend-item"><span class="legend-swatch" style="background:var(--seq-700)"></span>Long-term</span>
-        </div>
-      </div>
-      <div id="sector-phase-chart"></div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-head">
-        <div>
-          <p class="panel-title">RONAdapt&nbsp;II activities, ranked by proposed capital</p>
-          <p class="panel-desc">Click a row to expand its costed sub-projects. Filtered by the search box and any sector/partner filter above.</p>
-        </div>
-      </div>
-      <div id="program-table"></div>
-    </section>
-
-    <section class="panel" id="deep-panel">
+    <section class="panel" id="ex-deep-panel">
       <div class="panel-head">
         <div>
           <p class="panel-title">Deeper analysis: how solid is this, really?</p>
           <p class="panel-desc">Cuts that change how the headline numbers above should be read, not just what they add up to.</p>
         </div>
       </div>
-      <div class="grid-3" id="deep-cards" style="margin-bottom:18px;"></div>
+      <div class="grid-3" id="ex-deep-cards" style="margin-bottom:18px;"></div>
+
+      <div>
+        <p class="panel-title" style="font-size:13px;">Funder concentration by sector</p>
+        <p class="panel-desc" style="margin-bottom:10px;">The single largest named partner's share of each sector's associated capital, rows with no named partner excluded from the denominator. A high share means that sector leans on one institution's continued appetite.</p>
+        <div id="ex-concentration-table"></div>
+      </div>
+
+      <div class="grid-3" id="ex-deep-stats" style="margin-top:16px;"></div>
+    </section>
+
+  </section>
+
+  <!-- ============================= RONADAPT II PRIORITIES TAB (pipeline only) ============================= -->
+  <section class="tab-page" id="tab-ronadapt">
+
+    <section class="kpis" id="pi-kpi-row"></section>
+    <div id="pi-kpi-drilldown"></div>
+
+    <section class="panel" id="pi-insight-panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-title">Where the pipeline is heading</p>
+          <p class="panel-desc">Computed directly from the sector and phasing totals below, not editorial commentary.</p>
+        </div>
+      </div>
+      <div class="grid-3" id="pi-insight-cards"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-title">Proposed investment by sector</p>
+          <p class="panel-desc">RONAdapt&nbsp;II's proposed capital by sector, ranked highest to lowest.</p>
+        </div>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--track-pipeline)"></span>RONAdapt&nbsp;II pipeline (proposed)</span>
+        </div>
+      </div>
+      <div id="pi-sector-chart"></div>
+      <div class="subtable-wrap" id="pi-sector-table"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-title">Who is proposed to fund it</p>
+          <p class="panel-desc">Capital associated with each named partner across every sub-project that lists them, partners sharing a line are each credited the full amount, a reach measure, not an exclusive split.</p>
+        </div>
+      </div>
+      <div id="pi-partner-chart"></div>
+      <div class="subtable-wrap" id="pi-partner-table"></div>
+    </section>
+
+    <section class="grid-2">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-title">When, pipeline by horizon</p>
+            <p class="panel-desc">RONAdapt&nbsp;II's priority activities each phase their costing near, medium, or long-term, grouped here by phase order. Lines with no phase recorded yet get their own bar rather than being folded into one of the three.</p>
+          </div>
+        </div>
+        <div id="pi-phase-chart"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-title">Sector by horizon</p>
+            <p class="panel-desc">Which sectors are front-loaded into the near-term versus deferred to the long-term, and which still have capital with no phase recorded.</p>
+          </div>
+          <div class="legend">
+            <span class="legend-item"><span class="legend-swatch" style="background:var(--seq-100)"></span>Near-term</span>
+            <span class="legend-item"><span class="legend-swatch" style="background:var(--seq-300)"></span>Medium-term</span>
+            <span class="legend-item"><span class="legend-swatch" style="background:var(--seq-700)"></span>Long-term</span>
+            <span class="legend-item"><span class="legend-swatch" style="background:var(--baseline)"></span>Not yet phased</span>
+          </div>
+        </div>
+        <div id="pi-sector-phase-chart"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-title">RONAdapt&nbsp;II activities, ranked by proposed capital</p>
+          <p class="panel-desc">Click a row to expand its costed sub-projects.</p>
+        </div>
+      </div>
+      <div id="pi-program-table"></div>
+    </section>
+
+    <section class="panel" id="pi-deep-panel">
+      <div class="panel-head">
+        <div>
+          <p class="panel-title">Deeper analysis: how solid is this, really?</p>
+          <p class="panel-desc">Cuts that change how the headline numbers above should be read, not just what they add up to.</p>
+        </div>
+      </div>
+      <div class="grid-3" id="pi-deep-cards" style="margin-bottom:18px;"></div>
 
       <div class="grid-2">
         <div>
           <p class="panel-title" style="font-size:13px;">Funder concentration by sector</p>
-          <p class="panel-desc" style="margin-bottom:10px;">The single largest named partner's share of each sector's associated capital (rows with no named partner excluded from the denominator). A high share means that sector leans on one institution's continued appetite.</p>
-          <div id="concentration-table"></div>
+          <p class="panel-desc" style="margin-bottom:10px;">The single largest named partner's share of each sector's associated proposed capital, rows with no named partner excluded from the denominator.</p>
+          <div id="pi-concentration-table"></div>
         </div>
         <div>
           <p class="panel-title" style="font-size:13px;">Back-loading: Phase 3 vs. Phase 1</p>
           <p class="panel-desc" style="margin-bottom:10px;">RONAdapt&nbsp;II activities ranked by how much larger their long-term ask is than their near-term ask.</p>
-          <div id="backload-chart"></div>
+          <div id="pi-backload-chart"></div>
         </div>
       </div>
 
-      <div class="grid-3" id="deep-stats" style="margin-top:16px;"></div>
+      <div class="grid-3" id="pi-deep-stats" style="margin-top:16px;"></div>
     </section>
-
-    <footer>
-      <p><strong>Sources.</strong> "Project Master List" (existing/committed multi-donor investment, 2017&ndash;2026) and "RONADAPT Project List" (RONAdapt&nbsp;II's priority activities broken into their costed, phased sub-projects) tabs of <em>Nauru Project Master List.xlsx</em>, the latter transcribed from <em>RONAdapt&nbsp;II</em> (Government of the Republic of Nauru, 2025), published to a Google Sheet and read live from <code>data/projects.csv</code> or the configured sheet link &mdash; see <code>README.md</code>.</p>
-      <p><strong>Methodology notes.</strong> Every figure on this page, including this footer's own project counts, is computed in the browser from the currently loaded rows &mdash; nothing is pre-baked. "Who is funding it" is a mention-based reach measure: a line naming three partners credits its full capital to each of the three, so partner totals overlap and do not sum to the grand total. Rows flagged with a Duplicate Status of "Confirmed overlap" are excluded from the adjusted combined total shown in the deep-analysis panel above (see the Duplicates tab); rows flagged "Possible overlap" are shown everywhere but not excluded from any total.</p>
-    </footer>
 
   </section>
 
@@ -580,7 +640,7 @@
       <div class="panel-head">
         <div>
           <p class="panel-title">How the money flows: sector into existing vs. proposed</p>
-          <p class="panel-desc">Every sector's tracked capital (left) split into what's existing/committed versus what RONAdapt&nbsp;II proposes next (right). Ribbon thickness is proportional to capital &mdash; a thin or missing ribbon on one side is a gap. Hover a ribbon for the exact figure.</p>
+          <p class="panel-desc">Every sector's tracked capital (left) split into what's existing/committed versus what RONAdapt&nbsp;II proposes next (right). Ribbon thickness is proportional to capital, a thin or missing ribbon on one side is a gap. Hover a ribbon for the exact figure.</p>
         </div>
         <div class="legend">
           <span class="legend-item"><span class="legend-swatch" style="background:var(--track-existing)"></span>Existing / committed</span>
@@ -637,7 +697,7 @@
       <div class="panel-head">
         <div>
           <p class="panel-title">Sector categorisation</p>
-          <p class="panel-desc">Every sector sorted into one of four buckets, using four repeatable rules applied to whatever's currently in the data &mdash; not a one-off editorial call. See each bucket's caption for the exact rule.</p>
+          <p class="panel-desc">Every sector sorted into one of four buckets, using four repeatable rules applied to whatever's currently in the data, not a one-off editorial call. See each bucket's caption for the exact rule.</p>
         </div>
       </div>
       <div id="sectors-buckets"></div>
@@ -650,7 +710,7 @@
       <div class="panel-head">
         <div>
           <p class="panel-title">Duplicate &amp; overlap flags</p>
-          <p class="panel-desc">Rows the source data flags as possibly counted twice across the existing and pipeline tracks &mdash; e.g. a flagship programme costed as a rough placeholder in one track and again, in detail, in the other.</p>
+          <p class="panel-desc">Rows the source data flags as possibly counted twice across the existing and pipeline tracks, e.g. a flagship programme costed as a rough placeholder in one track and again, in detail, in the other.</p>
         </div>
       </div>
       <div class="grid-3" id="dup-summary" style="margin-bottom:18px;"></div>
@@ -672,6 +732,11 @@
       <div class="subtable-wrap" id="hazard-table"></div>
     </section>
   </section>
+
+  <footer>
+    <p><strong>Sources.</strong> "Project Master List" (existing/committed multi-donor investment, 2017 to 2026) and "RONADAPT Project List" (RONAdapt&nbsp;II's priority activities broken into their costed, phased sub-projects) tabs of <em>Nauru Project Master List.xlsx</em>, the latter transcribed from <em>RONAdapt&nbsp;II</em> (Government of the Republic of Nauru, 2025), published to a Google Sheet and read live from <code>data/projects.csv</code> or the configured sheet link, see <code>README.md</code>.</p>
+    <p><strong>Methodology notes.</strong> Every figure on this page, including this footer's own project counts, is computed in the browser from the currently loaded rows, nothing is pre-baked. The Master List Overview and RONAdapt&nbsp;II Priorities tabs each analyse one track only, existing/committed capital and the RONAdapt&nbsp;II pipeline are not combined or compared on those tabs. "Who is funding it" on each is a mention-based reach measure: a project naming three partners credits its full capital to each of the three, so partner totals overlap and do not sum to that tab's total. Rows flagged with a Duplicate Status of "Confirmed overlap" are excluded from that track's adjusted total in its deep-analysis panel; rows flagged "Possible overlap" are shown everywhere but not excluded from any total. The Money Flow and Gaps, Sectors, Duplicates, and Hazards tabs continue to combine both tracks.</p>
+  </footer>
 
 </div>
 
