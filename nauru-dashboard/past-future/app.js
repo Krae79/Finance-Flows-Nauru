@@ -472,13 +472,7 @@
   // ================= Executive Summary, Past tab =================
   function renderSummaryPastTab(){
     const pastCap = PAST_ROWS.reduce((a, r) => a + (r.capitalM || 0), 0);
-    const futureCap = FUTURE_ROWS.reduce((a, r) => a + (r.capitalM || 0), 0);
-    const combined = pastCap + futureCap;
     const pastYears = yearRange(PAST_ROWS);
-
-    document.getElementById('m-combined').textContent = fmtM(combined);
-    document.getElementById('m-past').textContent = fmtM(pastCap);
-    document.getElementById('m-future').textContent = fmtM(futureCap);
 
     document.getElementById('es-past-opener').innerHTML =
       `Nauru's historical climate finance record, the Commonwealth Tracker: 85 projects and activities, <b>${fmtM(pastCap)}</b>, approved ${pastYears.min} to ${pastYears.max}.`;
