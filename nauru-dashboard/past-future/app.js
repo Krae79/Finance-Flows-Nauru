@@ -398,16 +398,6 @@
     return {label: 'Broadly continued', cls: 'info'};
   }
 
-  // Sector bucket classification for the Sectors tab. Five rule-based groups.
-  function classifySectorBucket(past, future){
-    if (past === 0 && future > 0) return 'new';
-    if (future === 0 && past > 0) return 'nofuture';
-    const ratio = future / past;
-    if (ratio >= 1.5) return 'higherFuture';
-    if (ratio <= 0.67) return 'higherPast';
-    return 'continued';
-  }
-
   // ================= Application state =================
   let ROWS = null;
   let PAST_ROWS = null;
@@ -431,10 +421,10 @@
   }
 
   // ================= Tab routing =================
-  const TABS = ['summary', 'past', 'future', 'flows', 'sectors', 'duplicates', 'hazards', 'insights'];
+  const TABS = ['summary-past', 'past', 'summary-future', 'future', 'flows', 'sectors-past', 'sectors-future', 'duplicates', 'hazards', 'insights'];
   function applyHashRoute(){
     let tab = (location.hash || '').replace('#', '');
-    if (TABS.indexOf(tab) === -1) tab = 'summary';
+    if (TABS.indexOf(tab) === -1) tab = 'summary-past';
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-tab') === tab));
     document.querySelectorAll('.tab-page').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
   }
@@ -479,42 +469,64 @@
     el.innerHTML = cards.map(c => `<div class="insight-card"><span class="badge ${c.badge}">${c.badgeLabel}</span><p>${c.text}</p></div>`).join('');
   }
 
-  // ================= Executive Summary tab =================
-  function renderSummaryTab(){
+  // ================= Executive Summary, Past tab =================
+  function renderSummaryPastTab(){
     const pastCap = PAST_ROWS.reduce((a, r) => a + (r.capitalM || 0), 0);
     const futureCap = FUTURE_ROWS.reduce((a, r) => a + (r.capitalM || 0), 0);
     const combined = pastCap + futureCap;
     const pastYears = yearRange(PAST_ROWS);
-    const futureYears = yearRange(FUTURE_ROWS);
-    const overallMin = Math.min(pastYears.min, futureYears.min);
-    const overallMax = Math.max(pastYears.max, futureYears.max);
 
     document.getElementById('m-combined').textContent = fmtM(combined);
     document.getElementById('m-past').textContent = fmtM(pastCap);
     document.getElementById('m-future').textContent = fmtM(futureCap);
 
-    document.getElementById('es-opener').innerHTML =
-      `This dashboard compares Nauru's past climate finance, 85 projects and activities recorded in the Commonwealth Tracker between ${pastYears.min} and ${pastYears.max}, against its future climate finance pipeline, 397 costed line items across 21 named priority activities proposed in RONAdapt&nbsp;II between ${futureYears.min} and ${futureYears.max}. ` +
-      `Tracked past capital totals <b class="leaflet-figure" style="font-size:inherit;">${fmtM(pastCap)}</b>, and the proposed future pipeline totals ${fmtM(futureCap)}, for a combined figure of <b>${fmtM(combined)}</b> across both tracks. ` +
-      `The two tracks are not directly comparable line for line, the Commonwealth Tracker records completed grant agreements at their full committed value, while RONAdapt&nbsp;II breaks large ambitions into costed sub-components, but together they give a sense of the total scale of climate finance now associated with Nauru. ` +
-      `The pages that follow set out where that capital has gone, who has funded it, where the pipeline proposes to take it next and where the two tracks diverge.`;
+    document.getElementById('es-past-opener').innerHTML =
+      `Nauru's historical climate finance record, the Commonwealth Tracker: 85 projects and activities, <b>${fmtM(pastCap)}</b>, approved ${pastYears.min} to ${pastYears.max}.`;
 
-    renderKpis('es-kpi-row', [
-      {v: fmtM(pastCap), l: 'Total past capital'},
-      {v: fmtM(futureCap), l: 'Total future capital'},
-      {v: fmtM(combined), l: 'Combined capital'},
-      {v: String(PAST_ROWS.length), l: 'Past projects'},
-      {v: String(FUTURE_ROWS.length), l: 'Future line items'},
-      {v: `${overallMin} to ${overallMax}`, l: 'Years covered'},
+    renderKpis('es-past-kpi-row', [
+      {v: fmtM(pastCap), l: 'Total tracked capital'},
+      {v: String(PAST_ROWS.length), l: 'Projects and activities'},
+      {v: `${pastYears.min} to ${pastYears.max}`, l: 'Years covered'},
+      {v: '$649.39M, 96.2%', l: 'Completed capital'},
+      {v: 'Energy, $253.21M', l: 'Leading sector'},
+      {v: 'ADB, $271.85M', l: 'Leading funder'},
     ]);
 
     const cards = [
-      {badge: 'info', badgeLabel: 'Energy to coastal pivot', text: `Energy was the largest sector in the historical record at <b>$253.21M</b>, 37.5 percent of tracked past capital, but falls to fifth place in the pipeline at <b>$22.89M</b>, 9.1 percent of proposed future capital. Housing &amp; Community and Coastal &amp; Marine together account for <b>$114.25M</b>, 45.2 percent of proposed future capital.`},
-      {badge: 'concentration', badgeLabel: 'Funder continuity and diversification', text: `ADB alone accounts for <b>$271.85M</b>, 40.3 percent of tracked past capital, and remains the single largest named partner in the RONAdapt&nbsp;II pipeline at <b>$109.07M</b>. The future pipeline broadens the funder base considerably, with DFAT, JICA, MFAT, SPC, UNDP and SPREP all appearing prominently despite barely featuring in the historical record.`},
-      {badge: 'emerging', badgeLabel: 'Near-total realisation of past commitments', text: `79 of the 85 Commonwealth Tracker projects, 92.9 percent of the count and 96.2 percent of tracked capital at <b>$649.39M</b> of <b>$675.08M</b>, are recorded as completed. Only six projects, worth <b>$25.69M</b> combined, remain under implementation or open ended.`},
-      {badge: 'gap', badgeLabel: 'A far more granular but smaller-value pipeline', text: `397 proposed line items sit against 85 historical projects, yet total proposed capital of <b>$252.87M</b> is well under half the <b>$675.08M</b> already tracked historically. The combined figure across both eras is <b>$927.95M</b>.`},
+      {badge: 'info', badgeLabel: 'Energy leads sector investment', text: `Energy accounts for <b>$253.21M</b>, 37.5 percent of tracked capital. Multi-Sector programming follows at <b>$241.05M</b> and Climate Change programming at <b>$120.78M</b>. These three sectors account for 91.1 percent of tracked capital.`},
+      {badge: 'concentration', badgeLabel: 'Four institutions provide most of the funding', text: `The Asian Development Bank, Green Climate Fund, Government of Australia and Global Environment Facility contributed <b>$619.51M</b>, 91.8 percent of tracked capital, across 45 projects.`},
+      {badge: 'emerging', badgeLabel: 'Nearly all approved funding is delivered', text: `<b>$649.39M</b>, 96.2 percent of tracked capital across 79 projects, is completed. <b>$25.69M</b> across 6 projects remains under implementation.`},
+      {badge: 'gap', badgeLabel: 'Disaster risk reduction and coastal protection are a small share', text: `Disaster Risk Reduction and Coastal &amp; Marine investment together account for <b>$1.28M</b>, 0.2 percent of tracked capital.`},
+      {badge: 'info', badgeLabel: 'Investment is concentrated in three years', text: `2005, 2012 and 2017 account for <b>$424.81M</b>, 62.9 percent of tracked capital.`},
     ];
-    renderCardsInto('es-finding-cards', cards);
+    renderCardsInto('es-past-finding-cards', cards);
+  }
+
+  // ================= Executive Summary, Future tab =================
+  function renderSummaryFutureTab(){
+    const futureCap = FUTURE_ROWS.reduce((a, r) => a + (r.capitalM || 0), 0);
+    const futureYears = yearRange(FUTURE_ROWS);
+
+    document.getElementById('es-future-opener').innerHTML =
+      `Nauru's proposed climate finance pipeline, RONAdapt&nbsp;II: 397 costed line items across 21 programs, <b>${fmtM(futureCap)}</b>, phased ${futureYears.min} to ${futureYears.max}. None of this capital is yet confirmed as funded.`;
+
+    renderKpis('es-future-kpi-row', [
+      {v: fmtM(futureCap), l: 'Total proposed capital'},
+      {v: '397 lines, 21 programs', l: 'Line items and programs'},
+      {v: `${futureYears.min} to ${futureYears.max}`, l: 'Years covered'},
+      {v: 'Unspecified', l: 'Funding status, all lines'},
+      {v: 'Housing & Community, $85.06M', l: 'Leading sector'},
+      {v: 'ADB, $109.07M associated', l: 'Leading partner'},
+    ]);
+
+    const cards = [
+      {badge: 'info', badgeLabel: 'The Higher Ground Initiative leads the pipeline', text: `The Nauru Higher Ground Initiative for Enhanced Climate Resilience accounts for <b>$85.06M</b>, 33.6 percent of proposed capital.`},
+      {badge: 'concentration', badgeLabel: 'Coastal and water security lead the sector mix', text: `Housing &amp; Community, Water &amp; Sanitation and Coastal &amp; Marine investment together account for <b>$149.04M</b>, 58.9 percent of proposed capital. Coastal erosion and sea level rise is the leading hazard category at <b>$114.25M</b>, 45.2 percent.`},
+      {badge: 'emerging', badgeLabel: 'Eleven partners are each associated with over $10 million', text: `The Asian Development Bank leads at <b>$109.07M</b>, followed by DFAT at <b>$85.86M</b>, JICA at <b>$51.91M</b>, the World Bank at <b>$48.60M</b> and the Green Climate Fund at <b>$48.45M</b>.`},
+      {badge: 'gap', badgeLabel: 'Investment is phased across three time horizons', text: `Near term investment to 2030 totals <b>$76.20M</b>, medium term to 2035 totals <b>$75.57M</b>, long term to 2040 totals <b>$101.10M</b>.`},
+      {badge: 'info', badgeLabel: 'Health is a proposed investment area', text: `RONAdapt&nbsp;II proposes <b>$10.46M</b> for health sector climate resilience, across epidemiological research, health information systems and climate proofing of health infrastructure.`},
+    ];
+    renderCardsInto('es-future-finding-cards', cards);
   }
 
   // ================= Commonwealth Tracker (Past) tab =================
@@ -733,35 +745,28 @@
     document.getElementById('gaps-table').innerHTML = html;
   }
 
-  // ================= Sectors tab =================
-  function renderSectorsTab(){
-    const rows = combinedSectorRows();
-    const buckets = {
-      higherFuture: {label: 'Materially higher future than past', caption: 'Rule: past and future capital are both greater than zero, and future capital is at least 1.5 times past capital.', badge: 'emerging', items: []},
-      new: {label: 'Entirely new to the future pipeline', caption: 'Rule: past capital is exactly zero and future capital is greater than zero. No historical precedent at all.', badge: 'info', items: []},
-      continued: {label: 'Broadly continued at similar scale', caption: 'Rule: past and future capital are both greater than zero, and the ratio between them is within a factor of about 1.5 in either direction.', badge: 'concentration', items: []},
-      higherPast: {label: 'Materially higher past than future', caption: 'Rule: past and future capital are both greater than zero, and future capital is 67 percent or less of past capital.', badge: 'gap', items: []},
-      nofuture: {label: 'No future pipeline proposal', caption: 'Rule: future capital is exactly zero and past capital is greater than zero. Present in the historical record with no RONAdapt II proposal at all.', badge: 'gap', items: []},
-    };
-    rows.forEach(r => {
-      const bucket = classifySectorBucket(r.past, r.future);
-      buckets[bucket].items.push(r);
+  // ================= Sectors, Past tab =================
+  function renderSectorsPastTab(){
+    const bySector = aggBySector(PAST_ROWS);
+    renderHBar('sec-past-chart', bySector.map(s => ({label: s.sector, value: s.capital})), {
+      width: 900, leftPad: 200, color: 'var(--track-past)',
+      tip: d => { const s = bySector.find(x => x.sector === d.label); return `<div class="tt-title">${escHtml(s.sector)}</div><div class="tt-row"><span>Capital</span><b>${fmtM(s.capital)}</b></div><div class="tt-row"><span>Projects</span><b>${s.count}</b></div>`; },
     });
-    const order = ['higherFuture', 'new', 'continued', 'higherPast', 'nofuture'];
-    let html = '';
-    order.forEach(key => {
-      const b = buckets[key];
-      if (!b.items.length) return;
-      html += `<div class="bucket-group">
-        <div class="bucket-group-head"><span class="badge ${b.badge}">${b.items.length}</span><p class="panel-title" style="font-size:13px; margin:0;">${b.label}</p></div>
-        <p class="bucket-caption">${b.caption}</p>
-        <div class="grid-3">${b.items.sort((a, c) => (c.past + c.future) - (a.past + a.future)).map(s => `
-          <div class="insight-card"><div class="sec-name">${escHtml(s.sector)}</div>
-            <div class="sec-meta">Past ${fmtM(s.past)} &middot; Future ${fmtM(s.future)}</div>
-            <p>${s.past > 0 ? `Past capital of <b>${fmtM(s.past)}</b>` : 'No past capital recorded'}, ${s.future > 0 ? `future proposed capital of <b>${fmtM(s.future)}</b>.` : 'no future capital proposed.'}</p></div>`).join('')}</div>
-      </div>`;
+    renderSimpleSortTable('sec-past-table', bySector, [
+      {key: 'sector', label: 'Sector'}, {key: 'count', label: 'Projects', num: true}, {key: 'capital', label: 'Capital', num: true, fmt: fmtM},
+    ], 'capital');
+  }
+
+  // ================= Sectors, Future tab =================
+  function renderSectorsFutureTab(){
+    const bySector = aggBySector(FUTURE_ROWS);
+    renderHBar('sec-future-chart', bySector.map(s => ({label: s.sector, value: s.capital})), {
+      width: 900, leftPad: 200, color: 'var(--track-future)',
+      tip: d => { const s = bySector.find(x => x.sector === d.label); return `<div class="tt-title">${escHtml(s.sector)}</div><div class="tt-row"><span>Capital</span><b>${fmtM(s.capital)}</b></div><div class="tt-row"><span>Line items</span><b>${s.count}</b></div>`; },
     });
-    document.getElementById('sectors-buckets').innerHTML = html || '<div class="empty-state">No sectors in the current data.</div>';
+    renderSimpleSortTable('sec-future-table', bySector, [
+      {key: 'sector', label: 'Sector'}, {key: 'count', label: 'Line items', num: true}, {key: 'capital', label: 'Capital', num: true, fmt: fmtM},
+    ], 'capital');
   }
 
   // ================= Duplicates tab =================
@@ -864,11 +869,13 @@
       FUTURE_ROWS = ROWS.filter(r => r.track === TRACK_FUTURE);
       showBannerLoaded(source, ROWS.length);
 
-      renderSummaryTab();
+      renderSummaryPastTab();
       renderPastTab();
+      renderSummaryFutureTab();
       renderFutureTab();
       renderFlowsTab();
-      renderSectorsTab();
+      renderSectorsPastTab();
+      renderSectorsFutureTab();
       renderDuplicatesTab();
       renderHazardsTab();
       renderInsightsTab();
