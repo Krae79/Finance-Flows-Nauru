@@ -1,0 +1,26 @@
+[
+ {
+  "source": "Pohnpei JSAP 2016 4.1.6",
+  "item": "Document practices on food preservation (unit-cost analogue)",
+  "unit_cost": 37808,
+  "used_for": "Used for: 1.5.1, 2.3.2, 3.5.3"
+ },
+ {
+  "source": "Yap JSAP 2015 3.2.1",
+  "item": "Document community owned resources",
+  "unit_cost": 10235,
+  "used_for": "Used for: 3.1.1, 3.1.4"
+ },
+ {
+  "source": "Yap JSAP 2015 3.2.1",
+  "item": "Development of Community Management Plan",
+  "unit_cost": 5692,
+  "used_for": "Used for: 3.4.7, 4.2.4"
+ },
+ {
+  "source": "MCT Adaptation Fund proposal 2017 Output 3.2",
+  "item": "Community eco-based adaptation grant, average per community project",
+  "unit_cost": 40000,
+  "used_for": "Used for: 3.5.5, 4.7.2"
+ }
+]
