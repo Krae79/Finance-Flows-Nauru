@@ -138,7 +138,7 @@ footer h4{margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppe
   <div class="brand">HASKONING<small>Prepared by Katrina Rae</small></div>
 </div></header>
 <nav class="toc"><div class="wrap">
-  <a href="#s1">Story</a><a href="#s2">Headline</a><a href="#s3">By package</a><a href="#s4">How firm</a><a href="#s5">Gaps</a><a href="#s6">Largest lines</a><a href="#s7">Team and sources</a><a href="#s8">Chuuk tab</a><a href="#s9">FSM roll-up</a><a href="#s10">JSAP 2016</a><a href="#s11">Method</a><a href="#s12">Worked examples</a>
+  <a href="#s1">Story</a><a href="#s2">Headline</a><a href="#s2b">Every activity</a><a href="#s3">By package</a><a href="#s4">How firm</a><a href="#s5">Gaps</a><a href="#s6">Largest lines</a><a href="#s7">Team and sources</a><a href="#s8">Chuuk tab</a><a href="#s9">FSM roll-up</a><a href="#s10">JSAP 2016</a><a href="#s11">Method</a><a href="#s12">Worked examples</a>
 </div></nav>
 
 <div class="controls"><div class="wrap">
@@ -169,6 +169,13 @@ footer h4{margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppe
   <h2>2. Headline</h2>
   <div class="tiles" id="tiles"></div>
   <div class="note"><b>Totals are a lower bound.</b> <span id="partialNote"></span></div>
+</section>
+
+<section id="s2b">
+  <h2>2b. Every Chuuk activity</h2>
+  <p class="lead" id="actLead"></p>
+  <div class="legend"><span><i style="background:var(--navy)"></i>Direct match</span><span><i style="background:var(--green)"></i>Analogue</span><span><i style="background:var(--grey)"></i>Team estimate</span></div>
+  <div class="tw"><table><thead><tr><th>Activity</th><th class="num">CAPEX</th><th class="num">Share</th><th class="num">OPEX / yr</th><th>Evidence basis</th><th class="num">Sub-activities</th><th>Largest cost driver</th></tr></thead><tbody id="actBody"></tbody></table></div>
 </section>
 
 <section id="s3">
@@ -298,7 +305,7 @@ const PK = {}; ACTS.forEach(a => PK[a.package] = a.package_name);
 const ACTN = {}; ACTS.forEach(a => ACTN[a.code] = a.name);
 const SUBN = {}; SUBS.forEach(s => SUBN[s.code] = s.name);
 const POP = 48654;
-const st = { pkg: 'all', q: '', open: new Set() };
+const st = { pkg: 'all', q: '', open: new Set(['p1', 'p2', 'p3', 'p4', 'p5', 'p6']) };
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const money = v => '$' + Math.round(v || 0).toLocaleString('en-AU');
@@ -379,6 +386,24 @@ function headline() {
     ['FSM roll-up (source-based)', money(fsm), 'Chuuk, Kosrae, Pohnpei, Yap' + (st.q ? ' (package filter only)' : '')]
   ].map(([k, v, n]) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="n">${n}</div></div>`).join('');
   $('partialNote').textContent = `${c.open} of ${fs.length} sub-activities in this view have no figure in the Chuuk tab, so every total on this page is a lower bound. Covered-elsewhere items are $0 because another sub-activity carries their cost. The FSM roll-up uses the source-based costing only.`;
+}
+
+function activities() {
+  const fs = subsF(), acts = ACTS.filter(a => inPkg(a.package)), tot = sum(fs, 'capex');
+  const rows = [];
+  let lastP = null;
+  acts.forEach(a => {
+    const l = fs.filter(s => s.activity === a.code); if (st.q && !l.length) return;
+    if (a.package !== lastP) { lastP = a.package; const pl = fs.filter(s => s.package === a.package); rows.push(`<tr class="actrow"><td colspan="7">${a.package}. ${esc(PK[a.package])} &middot; ${money(sum(pl, 'capex'))}</td></tr>`); }
+    const g = agg(l), c = { direct: 0, analogue: 0, team: 0 }, n = { src: 0, team: 0, covered: 0, open: 0 };
+    l.forEach(s => { if (c[s.basis] != null) c[s.basis] += s.capex || 0; n[s.basis === 'direct' || s.basis === 'analogue' ? 'src' : s.basis]++; });
+    const t = c.direct + c.analogue + c.team, top = l.filter(s => s.capex > 0).sort((x, y) => y.capex - x.capex)[0];
+    rows.push(`<tr><td><b>${a.code}</b> ${esc(a.name)}</td><td class="num"><b>${money(g.cap)}</b></td><td class="num">${tot ? (100 * g.cap / tot).toFixed(1) + '%' : ''}</td><td class="num">${money(g.opex)}</td><td><div class="mini" style="min-width:120px">${['direct', 'analogue', 'team'].map(k => seg(c[k], t, BCOL[k], `${BAS[k]}: ${money(c[k])}`)).join('')}</div><span style="font-size:11.5px">${t ? pct(c.direct + c.analogue, t) + ' sourced' : 'no cost yet'}</span></td><td class="num" style="font-size:12px">${l.length}: ${n.src} sourced${n.team ? ', ' + n.team + ' team' : ''}${n.covered ? ', ' + n.covered + ' covered' : ''}${n.open ? ', <b>' + n.open + ' open</b>' : ''}</td><td style="font-size:12px">${top ? `<b>${top.code}</b> ${money(top.capex)} (${pct(top.capex, g.cap)}): ${esc(top.name.length > 90 ? top.name.slice(0, 90) + '…' : top.name)}` : ''}</td></tr>`);
+  });
+  $('actBody').innerHTML = rows.join('') || '<tr><td colspan="7" class="empty">No activities match this filter.</td></tr>';
+  const shown = rows.filter(r => !r.includes('class="actrow"')).length;
+  const big = acts.map(a => [a, sum(fs.filter(s => s.activity === a.code), 'capex')]).sort((x, y) => y[1] - x[1]);
+  $('actLead').textContent = `All ${shown} Chuuk activities in this view, grouped by package, with CAPEX, share of the total, OPEX, how firm each figure is, and the sub-activity that drives most of its cost.` + (big.length > 3 ? ` The five largest (${big.slice(0, 5).map(x => x[0].code).join(', ')}) carry ${pct(sum(big.slice(0, 5), x => x[1]), tot)} of CAPEX.` : '');
 }
 
 function tree() {
@@ -505,7 +530,7 @@ function workedExamples() {
   $('weBox').innerHTML = ex.map(([t, s, why, calc], i) => `<div class="we"><div class="wh"><span>${i + 1}. ${t}</span><span>${s.code} &middot; ${s.basis === 'open' ? 'open' : money(s.capex)}</span></div><div class="wb"><b>${s.code}</b> ${esc(s.name)}<p style="margin:8px 0">${esc(why)}</p><div class="calc">${esc(calc)}</div><div style="font-size:12.5px"><b>Justification in the Chuuk tab:</b> ${esc(s.capex_note)}</div></div></div>`).join('');
 }
 
-function render() { controls(); headline(); tree(); confidence(); gaps(); largest(); compare(); chuukTab(); states(); }
+function render() { controls(); headline(); activities(); tree(); confidence(); gaps(); largest(); compare(); chuukTab(); states(); }
 
 $('pk').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; st.pkg = b.dataset.p; render(); });
 let qt; $('q').addEventListener('input', e => { clearTimeout(qt); qt = setTimeout(() => { st.q = e.target.value.trim().toLowerCase(); render(); }, 150); });
