@@ -151,8 +151,7 @@ footer h4{margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppe
 
 <section id="s1">
   <h2>1. What the costing means</h2>
-  <p class="lead">The story in one page, structured as a pyramid: the situation, the question it raises, the answer, and the three messages that support it. Figures cover all six packages and update live below with the filters.</p>
-  <div class="pyr">
+    <div class="pyr">
     <div class="ctx"><b>Situation</b> <span id="stSit"></span></div>
     <div class="ctx"><b>Complication</b> <span id="stComp"></span></div>
     <div class="ctx"><b>Critical question</b> How much will Chuuk's adaptation programme cost, how much of that figure is evidence-based, and where should the team focus before the costing goes to SPREP and the FSM Government?</div>
@@ -180,14 +179,13 @@ footer h4{margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppe
 
 <section id="s3">
   <h2>3. Cost by package and source</h2>
-  <p class="lead">CAPEX by basis for each package. Select a package to open its activities, an activity to open its sub-activities, and a sub-activity to read its full justification.</p>
-  <div class="legend"><span><i style="background:var(--navy)"></i>Step 1 Past JSAP</span><span><i style="background:var(--green)"></i>Step 2 IDP</span><span><i style="background:var(--mint)"></i>Step 3 Other source</span><span><i style="background:var(--grey)"></i>Team estimate (expert judgement)</span></div>
+    <div class="legend"><span><i style="background:var(--navy)"></i>Step 1 Past JSAP</span><span><i style="background:var(--green)"></i>Step 2 IDP</span><span><i style="background:var(--mint)"></i>Step 3 Other source</span><span><i style="background:var(--grey)"></i>Team estimate (expert judgement)</span></div>
   <div id="pkgTree"></div>
 </section>
 
 <section id="s4">
   <h2>4. How firm the numbers are</h2>
-  <p class="lead">Each sub-activity rests on one of five bases. Direct matches and analogues come from published costed plans; team estimates are expert judgement where no published precedent exists; covered-elsewhere items carry $0 because another sub-activity already pays for them; open items have no figure yet.</p>
+  <p class="lead">Direct matches and analogues come from published costed plans. Team estimates are expert judgement where no published precedent exists. Covered-elsewhere items carry $0 because another sub-activity pays for them.</p>
   <div class="grid2">
     <div class="panel"><h3 style="margin-top:0">CAPEX by basis</h3><div class="bar" id="capBar" style="height:26px"></div><div class="legend" id="capLeg"></div></div>
     <div class="panel"><h3 style="margin-top:0">Sub-activities by basis</h3><div class="bar" id="cntBar" style="height:26px"></div><div class="legend" id="cntLeg"></div></div>
@@ -213,21 +211,19 @@ footer h4{margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppe
 
 <section id="s7">
   <h2>7. Team estimates and published sources compared</h2>
-  <p class="lead">The team's original Chuuk estimates (preserved unchanged in the workbook as the 'Chuuk team estimates' tab) set against the source-based costing and the combined figure now in the Chuuk tab.</p>
-  <div class="tw"><table><thead><tr><th>Package</th><th class="num">Team original</th><th class="num">Source-based</th><th class="num">Team estimates added</th><th class="num">Chuuk tab (combined)</th><th class="num">Open sub-activities</th></tr></thead><tbody id="cmpBody"></tbody></table></div>
+    <div class="tw"><table><thead><tr><th>Package</th><th class="num">Team original</th><th class="num">Source-based</th><th class="num">Team estimates added</th><th class="num">Chuuk tab (combined)</th><th class="num">Open sub-activities</th></tr></thead><tbody id="cmpBody"></tbody></table></div>
   <div class="note tint" id="cmpNote"></div>
 </section>
 
 <section id="s8">
   <h2>8. The Chuuk tab</h2>
-  <p class="lead">Every activity and sub-activity in the Chuuk tab, with CAPEX, OPEX, the source split, the cost-type flags and the full justification. Use the package filter and search above; download the view as CSV for Excel.</p>
-  <div class="tbar"><button class="btn" id="dlCsv">Download this view (CSV)</button><label style="font-size:13px"><input type="checkbox" id="showJust" checked> Show justifications</label><span class="sp"></span><span id="ctCount" style="font-size:12px"></span></div>
+    <div class="tbar"><button class="btn" id="dlCsv">Download this view (CSV)</button><label style="font-size:13px"><input type="checkbox" id="showJust" checked> Show justifications</label><span class="sp"></span><span id="ctCount" style="font-size:12px"></span></div>
   <div class="tw tall"><table id="ctTable"><thead><tr><th>Code</th><th>Name</th><th>Basis</th><th class="num">CAPEX</th><th class="num">OPEX / yr</th><th class="num">Past JSAP</th><th class="num">IDP</th><th class="num">Other source</th><th>Int. consult.</th><th>Construct.</th><th>Workshop</th><th class="jcol">Justification (CAPEX)</th><th class="jcol">Justification (OPEX)</th></tr></thead><tbody id="ctBody"></tbody></table></div>
 </section>
 
 <section id="s9">
   <h2>9. FSM roll-up</h2>
-  <p class="lead">Each Chuuk source line carries to the other States as the same cost, by a population factor, by a sites factor, or not at all where it is State-specific. The roll-up uses the source-based costing only: team estimates are Chuuk judgements and are not transferred.</p>
+  <p class="lead">Chuuk source lines carry to the other States as the same cost, by population, by number of sites, or not at all where State-specific. Team estimates are not transferred.</p>
   <div class="tiles" id="stTiles" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))"></div>
   <div class="note">Other-State totals are <b>lower bounds</b>. They carry only Chuuk-derived costs, exclude each State's own State-specific capital projects, and apply only where the State tab includes that activity.</div>
   <div class="legend"><span><i style="background:var(--navy)"></i>Same in every State</span><span><i style="background:var(--green)"></i>Population factor</span><span><i style="background:var(--mint)"></i>Sites factor</span><span><i style="background:var(--tan)"></i>State-specific (Chuuk only)</span></div>
@@ -279,8 +275,7 @@ footer h4{margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppe
 
 <section id="s12">
   <h2>12. Worked examples</h2>
-  <p class="lead">Six sub-activities, one for each way a figure enters the Chuuk tab. Each calculation is rebuilt live from the data.</p>
-  <div id="weBox"></div>
+    <div id="weBox"></div>
 </section>
 </main>
 
@@ -403,7 +398,7 @@ function activities() {
   $('actBody').innerHTML = rows.join('') || '<tr><td colspan="7" class="empty">No activities match this filter.</td></tr>';
   const shown = rows.filter(r => !r.includes('class="actrow"')).length;
   const big = acts.map(a => [a, sum(fs.filter(s => s.activity === a.code), 'capex')]).sort((x, y) => y[1] - x[1]);
-  $('actLead').textContent = `All ${shown} Chuuk activities in this view, grouped by package, with CAPEX, share of the total, OPEX, how firm each figure is, and the sub-activity that drives most of its cost.` + (big.length > 3 ? ` The five largest (${big.slice(0, 5).map(x => x[0].code).join(', ')}) carry ${pct(sum(big.slice(0, 5), x => x[1]), tot)} of CAPEX.` : '');
+  $('actLead').textContent = (big.length > 3 ? `The five largest (${big.slice(0, 5).map(x => x[0].code).join(', ')}) carry ${pct(sum(big.slice(0, 5), x => x[1]), tot)} of CAPEX.` : '');
 }
 
 function tree() {
@@ -446,7 +441,7 @@ function confidence() {
 function gaps() {
   const fs = subsF(), op = fs.filter(s => s.basis === 'open'), ce = fs.filter(s => s.basis === 'covered');
   const nofig = op.filter(s => !s.team_not_added).length;
-  $('gapLead').textContent = `${op.length} sub-activities in this view have no figure in the Chuuk tab: ${nofig} have no defensible figure from any source, and ${op.length - nofig} carry a team figure (${mill(sum(op, s => s.team_not_added || 0))}) held back under the costing rules. Closing these is the main route to a complete total.`;
+  $('gapLead').textContent = `${op.length} sub-activities in this view have no figure in the Chuuk tab: ${nofig} have no defensible figure from any source, and ${op.length - nofig} carry a team figure (${mill(sum(op, s => s.team_not_added || 0))}) held back under the costing rules.`;
   $('gapBody').innerHTML = op.length ? op.map(s => `<tr><td><b>${s.code}</b><br><span style="font-size:11.5px">${esc(ACTN[s.activity])}</span></td><td>${esc(s.name)}</td><td>${esc(s.reason)}${s.excluded_reason ? '<br><i>Team figure held back: ' + esc(s.excluded_reason) + '.</i>' : ''}</td><td class="num">${s.team_not_added ? money(s.team_not_added) : ''}</td><td style="font-size:12px">${esc(s.lead || '')}</td></tr>`).join('') : '<tr><td colspan="5" class="empty">No open sub-activities in this view.</td></tr>';
   $('ceTitle').textContent = `Covered-elsewhere sub-activities (${ce.length})`;
   $('ceBody').innerHTML = ce.length ? ce.map(s => `<tr><td><b>${s.code}</b></td><td>${esc(s.name)}</td><td>${esc(s.covered_by)}</td></tr>`).join('') : '<tr><td colspan="3" class="empty">None in this view.</td></tr>';
@@ -455,7 +450,7 @@ function gaps() {
 function largest() {
   const lines = allLines(subsF()).sort((a, b) => b.est - a.est), tot = sum(lines, 'est'), top = lines.slice(0, 15);
   let cum = 0;
-  $('topLead').textContent = top.length ? `The 15 largest lines carry ${pct(sum(top, 'est'), tot)} of CAPEX in this view. Reviewing them first tests most of the money with the least effort.` : '';
+  $('topLead').textContent = top.length ? `The 15 largest lines carry ${pct(sum(top, 'est'), tot)} of CAPEX in this view.` : '';
   $('topBody').innerHTML = top.length ? top.map((l, i) => { cum += l.est; return `<tr data-tip="${esc(l.note)}"><td>${i + 1}</td><td><b>${l.sub}</b><br><span style="font-size:12px">${esc((SUBN[l.sub] || '').slice(0, 70))}${(SUBN[l.sub] || '').length > 70 ? '…' : ''}</span></td><td><span class="chip ${l.basis}">${BAS[l.basis]}</span><br><span style="font-size:11px">${esc(l.step)}</span></td><td>${esc(l.doc)}</td><td>${esc(l.ref)}</td><td>${esc(l.item)}</td><td class="num">${esc(l.orig)}</td><td class="num" style="font-size:12px">${l.fac}</td><td class="num"><b>${money(l.est)}</b></td><td class="num">${pct(cum, tot)}</td></tr>`; }).join('') : '<tr><td colspan="10" class="empty">No lines match this filter.</td></tr>';
 }
 
